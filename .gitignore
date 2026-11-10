@@ -1,0 +1,17 @@
+# Entorno virtual
+env/
+venv/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# Base de datos local (cada uno genera la suya con las migraciones)
+db.sqlite3
+
+# Archivos del sistema / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

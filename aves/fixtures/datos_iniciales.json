@@ -1,0 +1,117 @@
+[
+  {
+    "model": "aves.ave",
+    "pk": 1,
+    "fields": {
+      "nombre_comun": "Condor andino",
+      "nombre_cientifico": "Vultur gryphus",
+      "familia": "Cathartidae",
+      "color": "Negro con collar blanco",
+      "tamano": "Muy grande",
+      "foto_url": ""
+    }
+  },
+  {
+    "model": "aves.ave",
+    "pk": 2,
+    "fields": {
+      "nombre_comun": "Turpial",
+      "nombre_cientifico": "Icterus icterus",
+      "familia": "Icteridae",
+      "color": "Negro y naranja",
+      "tamano": "Mediano",
+      "foto_url": ""
+    }
+  },
+  {
+    "model": "aves.ave",
+    "pk": 3,
+    "fields": {
+      "nombre_comun": "Garza del ganado",
+      "nombre_cientifico": "Bubulcus ibis",
+      "familia": "Ardeidae",
+      "color": "Blanco",
+      "tamano": "Mediana",
+      "foto_url": ""
+    }
+  },
+  {
+    "model": "aves.ave",
+    "pk": 4,
+    "fields": {
+      "nombre_comun": "Golondrina comun",
+      "nombre_cientifico": "Hirundo rustica",
+      "familia": "Hirundinidae",
+      "color": "Azul y blanca",
+      "tamano": "Pequena",
+      "foto_url": ""
+    }
+  },
+  {
+    "model": "aves.ave",
+    "pk": 5,
+    "fields": {
+      "nombre_comun": "Candelita",
+      "nombre_cientifico": "Myioborus miniatus",
+      "familia": "Parulidae",
+      "color": "Gris con corona amarilla",
+      "tamano": "Pequena",
+      "foto_url": ""
+    }
+  },
+  {
+    "model": "aves.avistamiento",
+    "pk": 1,
+    "fields": {
+      "ave": 1,
+      "fecha": "2026-09-20",
+      "lugar": "Bosque altoandino",
+      "cantidad": 2,
+      "notas": "Vuelo alto cerca del canope del paramo."
+    }
+  },
+  {
+    "model": "aves.avistamiento",
+    "pk": 2,
+    "fields": {
+      "ave": 2,
+      "fecha": "2026-10-05",
+      "lugar": "Parque del barrio",
+      "cantidad": 1,
+      "notas": "Cantando en la manana sobre un arbol de mango."
+    }
+  },
+  {
+    "model": "aves.avistamiento",
+    "pk": 3,
+    "fields": {
+      "ave": 3,
+      "fecha": "2026-10-12",
+      "lugar": "Laguna del parque",
+      "cantidad": 6,
+      "notas": "Grupo alimentandose junto al ganado."
+    }
+  },
+  {
+    "model": "aves.avistamiento",
+    "pk": 4,
+    "fields": {
+      "ave": 4,
+      "fecha": "2026-10-18",
+      "lugar": "Campus SENA",
+      "cantidad": 4,
+      "notas": "Volando en circulos sobre los edificios."
+    }
+  },
+  {
+    "model": "aves.avistamiento",
+    "pk": 5,
+    "fields": {
+      "ave": 5,
+      "fecha": "2026-11-02",
+      "lugar": "Sendero ecologico",
+      "cantidad": 2,
+      "notas": "Muy activas moviendo la cola."
+    }
+  }
+]
