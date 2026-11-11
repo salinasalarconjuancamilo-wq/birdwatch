@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block titulo %}Carrusel de la portada{% endblock %}
+
+{% block contenido %}
+<div class="pagina-carrusel">
+    <section class="seccion">
+        <div class="carrusel-cabecera">
+            <div>
+                <h1 class="seccion-titulo">Carrusel de la portada</h1>
+                <p class="seccion-sub">
+                    Añade, edita, ordena u oculta las aves que aparecen en la portada.
+                    Los cambios se ven al instante en <a href="{% url 'inicio' %}">Inicio</a>.
+                </p>
+            </div>
+            <a class="boton-primario" href="{% url 'carrusel_nueva' %}">+ Añadir ave</a>
+        </div>
+
+        <p class="carrusel-resumen">
+            {{ aves|length }} ave{{ aves|length|pluralize:"s" }} en total ·
+            {{ aves_visibles }} visible{{ aves_visibles|pluralize:"s" }} en la portada
+        </p>
+
+        <div class="carrusel-lista">
+            {% for ave in aves %}
+            <article class="carrusel-item {% if not ave.activo %}carrusel-item-oculto{% endif %}">
+                <img class="carrusel-item-foto" src="{% static ave.imagen %}"
+                     alt="Foto de {{ ave.nombre_comun }}" width="160" height="100" loading="lazy">
+                <div class="carrusel-item-info">
+                    <h2 class="carrusel-item-nombre">
+                        {{ ave.nombre_comun }}
+                        {% if not ave.activo %}<span class="etiqueta-oculta">Oculta</span>{% endif %}
+                    </h2>
+                    <p class="nombre-cientifico">{{ ave.nombre_cientifico }}</p>
+                    <p class="carrusel-item-posicion">Posición {{ ave.orden }}</p>
+                </div>
+                <div class="carrusel-item-acciones">
+                    <a class="boton-secundario" href="{% url 'carrusel_editar' ave.pk %}">Editar</a>
+
+                    <form method="post" action="{% url 'carrusel_mover' ave.pk %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="direccion" value="subir">
+                        <button class="boton-icono" type="submit" title="Subir una posición"
+                                aria-label="Subir «{{ ave.nombre_comun }}»">&#9650;</button>
+                    </form>
+                    <form method="post" action="{% url 'carrusel_mover' ave.pk %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="direccion" value="bajar">
+                        <button class="boton-icono" type="submit" title="Bajar una posición"
+                                aria-label="Bajar «{{ ave.nombre_comun }}»">&#9660;</button>
+                    </form>
+
+                    <form method="post" action="{% url 'carrusel_alternar' ave.pk %}">
+                        {% csrf_token %}
+                        <button class="boton-secundario" type="submit">
+                            {% if ave.activo %}Ocultar{% else %}Mostrar{% endif %}
+                        </button>
+                    </form>
+
+                    <form method="post" action="{% url 'carrusel_eliminar' ave.pk %}"
+                          onsubmit="return confirm('¿Eliminar «{{ ave.nombre_comun|escapejs }}» del carrusel? Esta acción no se puede deshacer.');">
+                        {% csrf_token %}
+                        <button class="boton-peligro" type="submit">Eliminar</button>
+                    </form>
+                </div>
+            </article>
+            {% empty %}
+            <p class="sin-resultados">Todavía no hay aves en el carrusel. Usa «Añadir ave» para crear la primera.</p>
+            {% endfor %}
+        </div>
+    </section>
+</div>
+{% endblock %}

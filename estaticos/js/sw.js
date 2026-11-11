@@ -2,7 +2,7 @@
    Guarda en caché solo los archivos estáticos; las páginas, el inicio
    de sesión y las peticiones de análisis siempre van a la red. */
 
-var NOMBRE_CACHE = 'birdwatch-estaticos-v3';
+var NOMBRE_CACHE = 'birdwatch-estaticos-v4';
 
 self.addEventListener('install', function (evento) {
     evento.waitUntil(

@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block titulo %}{{ titulo }}{% endblock %}
+
+{% block contenido %}
+<div class="pagina-carrusel">
+    <section class="seccion seccion-formulario-ave">
+        <h1 class="seccion-titulo">{{ titulo }}</h1>
+        <p class="seccion-sub">
+            La foto se recorta sola al marco del carrusel (16:10) y se optimiza
+            para que la portada cargue rápido.
+        </p>
+
+        <form class="formulario-ave" method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            {% if formulario.non_field_errors %}
+            <div class="login-error">{{ formulario.non_field_errors }}</div>
+            {% endif %}
+
+            <div class="campo">
+                <label class="campo-etiqueta" for="{{ formulario.nombre_comun.id_for_label }}">
+                    {{ formulario.nombre_comun.label }}
+                </label>
+                {{ formulario.nombre_comun }}
+                {{ formulario.nombre_comun.errors }}
+            </div>
+
+            <div class="campo">
+                <label class="campo-etiqueta" for="{{ formulario.nombre_cientifico.id_for_label }}">
+                    {{ formulario.nombre_cientifico.label }}
+                </label>
+                {{ formulario.nombre_cientifico }}
+                {% if formulario.nombre_cientifico.help_text %}
+                <small class="campo-ayuda">{{ formulario.nombre_cientifico.help_text }}</small>
+                {% endif %}
+                {{ formulario.nombre_cientifico.errors }}
+            </div>
+
+            <div class="campo">
+                <label class="campo-etiqueta" for="{{ formulario.descripcion.id_for_label }}">
+                    {{ formulario.descripcion.label }}
+                </label>
+                {{ formulario.descripcion }}
+                {{ formulario.descripcion.errors }}
+            </div>
+
+            <div class="campo">
+                <label class="campo-etiqueta" for="{{ formulario.foto.id_for_label }}">
+                    {{ formulario.foto.label }}
+                </label>
+                {% if ave.imagen %}
+                <img class="vista-previa" src="{% static ave.imagen %}"
+                     alt="Foto actual de {{ ave.nombre_comun }}" width="240" height="150">
+                <small class="campo-ayuda">Foto actual. Si no subes otra, se conserva.</small>
+                {% endif %}
+                {{ formulario.foto }}
+                {% if formulario.foto.help_text %}
+                <small class="campo-ayuda">{{ formulario.foto.help_text }}</small>
+                {% endif %}
+                {{ formulario.foto.errors }}
+            </div>
+
+            <div class="campo campo-corto">
+                <label class="campo-etiqueta" for="{{ formulario.orden.id_for_label }}">
+                    {{ formulario.orden.label }}
+                </label>
+                {{ formulario.orden }}
+                {% if formulario.orden.help_text %}
+                <small class="campo-ayuda">{{ formulario.orden.help_text }}</small>
+                {% endif %}
+                {{ formulario.orden.errors }}
+            </div>
+
+            <div class="campo campo-casilla">
+                <div class="campo-casilla-fila">
+                    {{ formulario.activo }}
+                    <label class="campo-etiqueta" for="{{ formulario.activo.id_for_label }}">
+                        {{ formulario.activo.label }}
+                    </label>
+                </div>
+                {% if formulario.activo.help_text %}
+                <small class="campo-ayuda">{{ formulario.activo.help_text }}</small>
+                {% endif %}
+                {{ formulario.activo.errors }}
+            </div>
+
+            <div class="formulario-acciones">
+                <button class="boton-primario" type="submit">Guardar</button>
+                <a class="boton-secundario" href="{% url 'carrusel_admin' %}">Cancelar</a>
+            </div>
+        </form>
+    </section>
+</div>
+{% endblock %}

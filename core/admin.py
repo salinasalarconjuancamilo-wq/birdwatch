@@ -5,9 +5,9 @@ from .models import Ave, Deteccion
 
 @admin.register(Ave)
 class AveAdmin(admin.ModelAdmin):
-    list_display = ("orden", "nombre_comun", "nombre_cientifico")
+    list_display = ("orden", "nombre_comun", "nombre_cientifico", "activo")
     list_display_links = ("nombre_comun",)
-    list_editable = ("orden",)
+    list_editable = ("orden", "activo")
     search_fields = ("nombre_comun", "nombre_cientifico")
 
 

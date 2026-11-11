@@ -25,6 +25,9 @@
         <a class="navegacion-enlace" href="{% url 'inicio' %}">Inicio</a>
         <a class="navegacion-enlace" href="{% url 'inicio' %}#vision">Visión y misión</a>
         {% if user.is_authenticated %}
+            {% if user.is_superuser %}
+                <a class="navegacion-enlace" href="{% url 'carrusel_admin' %}">Carrusel</a>
+            {% endif %}
             <a class="navegacion-enlace enlace-activo" href="{% url 'identificar' %}">Identificar</a>
             <form class="formulario-salir" method="post" action="{% url 'salir' %}">
                 {% csrf_token %}

@@ -107,11 +107,12 @@ manage.py                  Utilidades de Django
 requirements.txt           Dependencias de Python del proyecto
 .venv/                     Entorno virtual (no se sube a git)
 birdwatch/                 Configuración del proyecto Django (settings, urls)
-core/                      Aplicación principal: modelos, vistas, cliente
-                           BirdNET, traducciones ES y datos de las aves
+core/                      Aplicación principal: modelos, vistas, formularios,
+                           cliente BirdNET, traducciones ES y datos de las aves
 aves/                      Catálogo de aves y registro de avistamientos
                            (se administra en /admin/)
-plantillas/                Páginas HTML (base, inicio, login, identificar)
+plantillas/                Páginas HTML (base, inicio, login, identificar,
+                           carrusel de la portada)
 estaticos/                 CSS, JavaScript, manifest PWA, logo y fotos de aves
 servidor_birdnet.py        Servidor HTTP del analizador BirdNET (bottle)
 ```
@@ -189,6 +190,33 @@ su nombre común a `ETIQUETAS_NO_AVE`.
 > español las especies más conocidas de Colombia (se puede ampliar agregando
 > entradas al diccionario). Las que no estén muestran su nombre en inglés y
 > el nombre científico.
+
+## Administrar el carrusel de la portada
+
+Solo el **superadministrador** (`user` / `1234`) puede editar el carrusel.
+Al iniciar sesión aparece el enlace **«Carrusel»** en la cabecera, o se puede
+entrar directamente a <http://localhost:3000/carrusel/>.
+
+Desde ese panel se puede, sin tocar archivos ni código:
+
+- **Añadir un ave**: botón «+ Añadir ave». Se sube la foto desde el navegador
+  (JPG o PNG de hasta 10 MB); la app la endereza, la reduce a 1280 px y la
+  guarda optimizada en `estaticos/img/aves/`. Se piden nombre común, nombre
+  científico, descripción, posición y si se muestra o no.
+- **Editar** la ficha o cambiar la foto (si no se sube otra, se conserva).
+- **Ordenar** con las flechas ▲ ▼ (la posición también se puede escribir).
+- **Ocultar/Mostrar** un ave sin borrarla: no aparece en la portada pero se
+  conserva en el panel.
+- **Eliminar** un ave y su foto (con confirmación).
+
+Los cambios se ven al instante en la portada: no hay que reiniciar Django.
+
+> También se pueden gestionar desde el admin de Django
+> (<http://localhost:3000/admin/> → Aves), pero el panel «Carrusel» es la
+> forma recomendada porque permite subir la foto directamente.
+>
+> La velocidad de rotación (6 s) y el tamaño de las tarjetas se ajustan en
+> `estaticos/js/carrusel.js` y `estaticos/css/estilos.css`.
 
 ## Configuración avanzada
 
