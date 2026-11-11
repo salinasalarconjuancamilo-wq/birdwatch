@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block titulo %}Identificar aves{% endblock %}
+
+{% block contenido %}
+<div class="pagina-identificar">
+    <section class="seccion grabadora-seccion">
+        <h1 class="seccion-titulo">Identificador de aves por el canto</h1>
+        <p class="seccion-sub">
+            Pulsa el botón del colibrí, acepta el permiso del micrófono y graba el canto
+            del ave (entre 3 y 15 segundos). El audio se analiza con BirdNET usando la
+            ubicación de San Antonio del Tequendama.
+        </p>
+
+        <div id="aviso-servicio" class="aviso-servicio oculto" role="alert">
+            <strong>No se detecta el analizador BirdNET.</strong>
+            En el equipo servidor ejecuta <code>INICIAR-BIRDWATCH.bat</code>
+            (o <code>INICIAR-BIRDNET.bat</code>) y vuelve a intentarlo.
+        </div>
+
+        <div class="tarjeta-grabadora">
+            <button id="boton-grabar" class="boton-grabar" type="button"
+                    aria-label="Iniciar la grabación del canto del ave">
+                <img src="{% static 'img/logo.svg' %}" alt="" width="100" height="100">
+                <span class="boton-grabar-estado" id="boton-grabar-estado">Grabar</span>
+            </button>
+
+            <div id="panel-grabacion" class="panel-grabacion oculto">
+                <div id="nivel" class="nivel" aria-hidden="true"></div>
+                <p class="cronometro"><span id="cronometro">0:00</span> <span class="cronometro-max">/ 0:15</span></p>
+                <p class="grabando-ayuda">Escuchando… pulsa de nuevo el botón para detener.</p>
+            </div>
+
+            <p id="estado-analisis" class="estado-analisis oculto">
+                <span class="girador" aria-hidden="true"></span>
+                Analizando el canto con BirdNET…
+            </p>
+
+            <p id="aviso-error" class="login-error oculto" role="alert"></p>
+        </div>
+    </section>
+
+    <section class="seccion resultados-seccion">
+        <h2 class="seccion-titulo">Resultado de la identificación</h2>
+        <div id="resultados" class="lista-resultados">
+            <p class="sin-resultados">Todavía no hay resultados: graba el canto de un ave para empezar.</p>
+        </div>
+    </section>
+
+    <section class="seccion historial-seccion">
+        <h2 class="seccion-titulo">Mis últimas detecciones</h2>
+        <div id="historial" class="lista-historial">
+            <p class="sin-resultados">Cargando…</p>
+        </div>
+    </section>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'js/identificar.js' %}"></script>
+{% endblock %}

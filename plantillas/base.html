@@ -1,0 +1,79 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="BirdWatch · Identifica las aves de San Antonio del Tequendama (Cundinamarca, Colombia) por su canto con la inteligencia artificial de BirdNET.">
+    <meta name="theme-color" content="#1b4332">
+    <link rel="icon" type="image/svg+xml" href="{% static 'img/logo.svg' %}">
+    <link rel="apple-touch-icon" href="{% static 'img/logo.svg' %}">
+    <link rel="manifest" href="{% static 'manifest.webmanifest' %}">
+    <link rel="stylesheet" href="{% static 'css/estilos.css' %}">
+    <title>{% block titulo %}Inicio{% endblock %} · BirdWatch</title>
+    {% block estilos %}{% endblock %}
+</head>
+<body>
+<a class="salto-contenido" href="#contenido">Saltar al contenido principal</a>
+
+<header class="cabecera">
+    <a class="marca" href="{% url 'inicio' %}">
+        <img class="marca-logo" src="{% static 'img/logo.svg' %}" alt="Colibrí, logotipo de BirdWatch" width="40" height="40">
+        <span class="marca-nombre">Bird<b>Watch</b></span>
+    </a>
+    <nav class="navegacion" aria-label="Navegación principal">
+        <a class="navegacion-enlace" href="{% url 'inicio' %}">Inicio</a>
+        <a class="navegacion-enlace" href="{% url 'inicio' %}#vision">Visión y misión</a>
+        {% if user.is_authenticated %}
+            <a class="navegacion-enlace enlace-activo" href="{% url 'identificar' %}">Identificar</a>
+            <form class="formulario-salir" method="post" action="{% url 'salir' %}">
+                {% csrf_token %}
+                <button class="navegacion-enlace boton-salir" type="submit" title="Cerrar sesión">Salir ({{ user.username }})</button>
+            </form>
+        {% else %}
+            <a class="navegacion-enlace enlace-destacado" href="{% url 'entrar' %}">Entrar</a>
+        {% endif %}
+    </nav>
+</header>
+
+{% if messages %}
+    <div class="avisos" role="status">
+        {% for mensaje in messages %}
+            <p class="aviso aviso-{{ mensaje.tags }}">{{ mensaje }}</p>
+        {% endfor %}
+    </div>
+{% endif %}
+
+<main id="contenido" class="contenido">
+    {% block contenido %}{% endblock %}
+</main>
+
+<footer class="pie">
+    <div class="pie-contenido">
+        <img class="pie-logo" src="{% static 'img/logo.svg' %}" alt="" width="56" height="56">
+        <div class="pie-texto">
+            <p class="pie-nombre">BirdWatch · San Antonio del Tequendama, Cundinamarca</p>
+            <p>
+                Identificación de aves por su canto con <strong>BirdNET</strong>
+                (Laboratorio de Ornitología de Cornell) y detecciones guardadas en PostgreSQL.
+            </p>
+            {% block creditos %}
+            <p class="pie-creditos">
+                Fotos de las aves: Wikimedia Commons —
+                Michael Gäbler (CC&nbsp;BY&nbsp;3.0),
+                Joseph&nbsp;C&nbsp;Boone (CC&nbsp;BY-SA&nbsp;4.0),
+                Charles&nbsp;J.&nbsp;Sharp (CC&nbsp;BY-SA&nbsp;4.0),
+                Mike's&nbsp;Birds (CC&nbsp;BY-SA&nbsp;2.0) y
+                Félix&nbsp;Uribe (CC&nbsp;BY&nbsp;2.0).
+                Canto de prueba: <em>Zonotrichia capensis</em> vía
+                xeno-canto (XC243300) / Wikimedia Commons.
+            </p>
+            {% endblock %}
+        </div>
+    </div>
+</footer>
+
+<script src="{% static 'js/comun.js' %}"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

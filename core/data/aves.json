@@ -1,0 +1,65 @@
+[
+  {
+    "orden": 1,
+    "nombre_comun": "Cóndor andino",
+    "nombre_cientifico": "Vultur gryphus",
+    "descripcion": "Símbolo de Colombia y de los Andes. Con casi 3 metros de envergadura es una de las aves voladoras más grandes del planeta; planea sobre los cañones del suroeste de Cundinamarca y ocasionalmente se deja ver en la cuenca del Tequendama. Especie amenazada y emblema nacional.",
+    "imagen": "img/aves/condor-andino.jpg"
+  },
+  {
+    "orden": 2,
+    "nombre_comun": "Inca bronceado",
+    "nombre_cientifico": "Coeligena coeligena",
+    "descripcion": "Colibrí grande del bosque de niebla, de plumaje bronce-verdoso y cola oscura. Es uno de los visitantes más fieles de las flores de sombrillón y dalia en los jardines de las veredas del municipio.",
+    "imagen": "img/aves/inca-bronceado.jpg"
+  },
+  {
+    "orden": 3,
+    "nombre_comun": "Zafiro colilargo",
+    "nombre_cientifico": "Aglaiocercus kingii",
+    "descripcion": "El macho presume una cola larga e iridiscente de más de 15 centímetros. Joya de los bosques andinos que visita flores de alta montaña; en San Antonio del Tequendama se observa en veredas conservadas y bordes de bosque.",
+    "imagen": "img/aves/zafiro-colilargo.jpg"
+  },
+  {
+    "orden": 4,
+    "nombre_comun": "Colibrí colinegro",
+    "nombre_cientifico": "Lesbia victoriae",
+    "descripcion": "Colibrí elegante y delgado, de cola negra larga y pecho verde tornasol. Típico de la sabana y las laderas alrededor de Bogotá; visita las salvias y fucsias de los jardines rurales.",
+    "imagen": "img/aves/colibri-colinegro.jpg"
+  },
+  {
+    "orden": 5,
+    "nombre_comun": "Chisga morada",
+    "nombre_cientifico": "Colibri coruscans",
+    "descripcion": "Colibrí robusto de cuerpo verde-morado brillante. Muy común en parques, jardines y zonas abiertas del municipio, donde defiende con bravura sus flores favoritas.",
+    "imagen": "img/aves/chisga-morada.jpg"
+  },
+  {
+    "orden": 6,
+    "nombre_comun": "Tucán piquiplano",
+    "nombre_cientifico": "Andigena laminirostris",
+    "descripcion": "Tucán de montaña inconfundible: pico amarillo con placas laterales y pecho gris. Frutero del bosque nublado que se desplaza en grupos familiares buscando aguacates silvestres y mortiño.",
+    "imagen": "img/aves/tucan-piquiplano.jpg"
+  },
+  {
+    "orden": 7,
+    "nombre_comun": "Tororoi coronirrufo",
+    "nombre_cientifico": "Grallaria ruficapilla",
+    "descripcion": "Ave terrestre y escondida del sotobosque, más escuchada que vista: su canto explosivo «¡toro-roí!» suena al amanecer en las quebradas y matorrales densos del municipio.",
+    "imagen": "img/aves/tororoi-coronirrufo.jpg"
+  },
+  {
+    "orden": 8,
+    "nombre_comun": "Candelita de frente dorada",
+    "nombre_cientifico": "Myioborus ornatus",
+    "descripcion": "Pequeña reinita de montaña con la frente amarillo dorado. Abre las alas mostrando sus parches claros mientras busca insectos en ramas y hojas del bosque de niebla; es una de las aves más vistas por los caminantes de Chicaque y la vereda San Antonio.",
+    "imagen": "img/aves/candelita-frente-dorada.jpg"
+  },
+  {
+    "orden": 9,
+    "nombre_comun": "Pava andina",
+    "nombre_cientifico": "Penelope montagnii",
+    "descripcion": "Crácido grande y arborícola del bosque nublado, silencioso y frugívoro. Su presencia es señal de bosques bien conservados; está amenazada por la caza y la pérdida de cobertura.",
+    "imagen": "img/aves/pava-andina.jpg"
+  }
+]

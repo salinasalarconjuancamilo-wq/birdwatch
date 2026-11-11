@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block titulo %}Entrar{% endblock %}
+
+{% block contenido %}
+<section class="seccion-login">
+    <div class="tarjeta-login">
+        <img class="login-logo" src="{% static 'img/logo.svg' %}" alt="Logotipo de BirdWatch: colibrí" width="88" height="88">
+        <h1 class="login-titulo">Entrar a BirdWatch</h1>
+        <p class="login-sub">Identifica las aves de San Antonio del Tequendama por su canto.</p>
+
+        {% if error %}<p class="login-error" role="alert">{{ error }}</p>{% endif %}
+
+        <form method="post" action="{% url 'entrar' %}" class="formulario-login" id="formulario-login">
+            {% csrf_token %}
+            <input type="hidden" name="siguiente" value="{{ request.GET.siguiente|default:'' }}">
+            <div class="campo">
+                <label class="campo-etiqueta" for="id-usuario">Usuario</label>
+                <input type="text" name="usuario" id="id-usuario" autocomplete="username" required>
+            </div>
+            <div class="campo">
+                <label class="campo-etiqueta" for="id-contrasena">Contraseña</label>
+                <span class="campo-clave">
+                    <input type="password" name="contrasena" id="id-contrasena" autocomplete="current-password" required>
+                    <button type="button" class="mostrar-clave" id="mostrar-clave" aria-label="Mostrar u ocultar la contraseña" aria-pressed="false">👁</button>
+                </span>
+            </div>
+            <button type="submit" class="boton-entrar">Entrar</button>
+        </form>
+
+        <p class="login-ayuda">
+            Por el momento el acceso es solo del administrador:<br>
+            usuario <code>user</code> · contraseña <code>1234</code>
+        </p>
+        <a class="login-volver" href="{% url 'inicio' %}">&#8592; Volver al inicio</a>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'js/login.js' %}"></script>
+{% endblock %}

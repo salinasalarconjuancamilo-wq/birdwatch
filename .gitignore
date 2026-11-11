@@ -1,0 +1,32 @@
+# ============================================================
+#  BirdWatch · Archivos que NO se suben a GitHub
+# ============================================================
+
+# Infraestructura portátil del proyecto (varios GB): Python 3.12 con
+# TensorFlow y los modelos BirdNET (224 MB), PostgreSQL 16 y el clúster
+# de datos. Se reconstruyen siguiendo el README.md y requirements.txt.
+herramientas/
+
+# Instaladores, registros y archivos pesados de la carpeta descargas.
+# Se conservan los scripts de Python (pruebas y descarga de fotos).
+descargas/*
+!descargas/*.py
+!descargas/creditos-aves.json
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# Django
+estaticos-compilados/
+db.sqlite3
+
+# Registros, temporales y grabaciones
+*.log
+*.wav
+descargas/birdnet-subidas/
+
+# Sistema operativo
+Thumbs.db
+.DS_Store
