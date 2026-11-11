@@ -10,11 +10,8 @@ from django.shortcuts import redirect, render
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.decorators.http import require_POST
 
-from .birdnet import analizar_audio, comprobar_servicio
+from .birdnet import CONFIANZA_MINIMA, analizar_audio, comprobar_servicio
 from .models import Deteccion
-
-# Confianza mínima para guardar una detección en la base de datos.
-CONFIANZA_MINIMA = 0.05
 
 
 def inicio(request):

@@ -20,6 +20,14 @@ BIRDNET_URL = os.environ.get("BIRDNET_URL", "http://localhost:8080")
 LATITUD = 4.6267
 LONGITUD = -74.3300
 
+# Confianza mínima (0 a 1) para reportar una identificación.
+# BirdNET asigna alguna probabilidad a cualquier sonido (voz humana, ruido,
+# música...), por eso conviene un umbral alto: con 0.20 se descartan las
+# coincidencias débiles y las aves reales (que suelen superar 0.30) siguen
+# apareciendo. Antes se mostraba desde 0.01 (1%), lo que producía falsos
+# positivos con voces humanas.
+CONFIANZA_MINIMA = 0.20
+
 # Filtro por región: cuando es True, el análisis se limita a las aves
 # de la región de San Antonio del Tequendama (filtro por ubicación de
 # BirdNET, ~480 especies). Cuando es False, BirdNET puede devolver
@@ -119,6 +127,7 @@ def analizar_audio(datos_wav, nombre="grabacion.wav"):
         "overlap": 0.0,
         "pmode": "avg",
         "num_results": 10,
+        "min_conf": CONFIANZA_MINIMA,
         "save": False,
         # Lista de especies permitidas: si no está vacía, BirdNET SOLO puede
         # devolver esas especies (restricción del lado del analizador).
