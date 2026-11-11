@@ -36,7 +36,11 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    # App principal: identificador por canto (BirdNET) y detecciones.
     "core",
+    # App original del repositorio: catalogo y avistamientos de aves
+    # (se administra desde /admin/).
+    "aves",
 ]
 
 MIDDLEWARE = [

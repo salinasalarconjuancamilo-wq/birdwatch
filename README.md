@@ -77,8 +77,10 @@ INICIAR-BIRDNET.bat        Arranca solo el analizador BirdNET (puerto 8080)
 DETENER-BIRDWATCH.bat      Detiene todos los servicios
 manage.py                  Utilidades de Django
 birdwatch/                 Configuración del proyecto Django (settings, urls)
-core/                      Aplicación: modelos, vistas, cliente BirdNET,
-                           traducciones ES y datos de las aves
+core/                      Aplicación principal: modelos, vistas, cliente
+                           BirdNET, traducciones ES y datos de las aves
+aves/                      Aplicación original del repositorio: catálogo de
+                           aves y registro de avistamientos (ver abajo)
 plantillas/                Páginas HTML (base, inicio, login, identificar)
 estaticos/                 CSS, JavaScript, manifest PWA, logo y fotos de aves
 servidor_birdnet.py        Servidor HTTP del analizador BirdNET (bottle)
@@ -87,6 +89,23 @@ herramientas/postgres/     PostgreSQL 16 portátil (puerto 5433)
 herramientas/pgdatos/      Clúster de datos de PostgreSQL
 descargas/                 Instaladores, registros y scripts de prueba
 requirements.txt           Dependencias de Python del proyecto
+```
+
+## App `aves`: catálogo y avistamientos (versión original del repositorio)
+
+La primera versión del proyecto traía la aplicación `aves`, que conserva un
+**catálogo de aves** (nombre común y científico, familia, color, tamaño y foto)
+y el **registro de avistamientos** (ave, fecha, lugar, cantidad y notas). Sigue
+instalada y se administra desde el panel de Django:
+
+1. Entra a <http://localhost:3000/admin/> con `user` / `1234`.
+2. En la sección **AVES** están **Aves** (catálogo) y **Avistamientos**.
+
+Sus datos iniciales (`aves/fixtures/datos_iniciales.json`) se cargan en la base
+de datos PostgreSQL junto con las tablas de la app principal `core`:
+
+```
+herramientas\python\python.exe manage.py loaddata aves/fixtures/datos_iniciales.json
 ```
 
 ## Servicios y puertos
