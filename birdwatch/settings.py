@@ -73,11 +73,12 @@ TEMPLATES = [
 WSGI_APPLICATION = "birdwatch.wsgi.application"
 
 # ------------------------------------------------------------------ Base de datos
-# Por defecto apunta al PostgreSQL portable del proyecto (herramientas/postgres).
+# Por defecto apunta al PostgreSQL local del equipo (servicio del sistema,
+# puerto 5432). Antes usaba el PostgreSQL portátil del proyecto en 5433.
 # Se puede sobreescribir con la variable de entorno DATABASE_URL, por ejemplo:
 #   set DATABASE_URL=postgres://usuario:clave@servidor:5432/basedatos
 DATABASE_URL = os.environ.get(
-    "DATABASE_URL", "postgres://birdwatch:birdwatch@localhost:5433/birdwatch"
+    "DATABASE_URL", "postgres://birdwatch:birdwatch@localhost:5432/birdwatch"
 )
 
 _u = urlparse(DATABASE_URL)
