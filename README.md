@@ -164,14 +164,26 @@ Dos ajustes viven en `core/birdnet.py`:
 Después de editar, reinicia la web con `DETENER-BIRDWATCH.bat` y
 `INICIAR-BIRDWATCH.bat`.
 
-### Umbral de confianza (voces humanas y ruido)
+### Voces humanas, ruido y umbral de confianza
 
-BirdNET asigna *alguna* probabilidad a cualquier sonido, así que una voz
-humana puede parecerse vagamente a un ave. Para evitar esos falsos positivos,
-`core/birdnet.py` define `CONFIANZA_MINIMA = 0.20`: solo se muestran y se
-guardan las coincidencias con al menos 20% de confianza (las aves reales
-suelen superar el 30%). Si aún aparecen coincidencias con voces, súbelo a
-`0.25` o `0.30`; si sientes que se pierden aves reales, bájalo a `0.15`.
+BirdNET asigna *alguna* probabilidad a cualquier sonido. Además de las aves,
+el modelo tiene clases que **no son aves**: `Human vocal`, `Human non-vocal`,
+`Human whistle`, `Dog`, `Engine`, `Noise`, `Siren`, `Power tools`,
+`Fireworks`, `Gun`, `Environmental` y dos grillos. Una voz
+humana puede puntuar alto (se han visto valores de 32% y hasta 72%), así que
+subir el umbral no basta.
+
+Por eso `core/birdnet.py` aplica **dos filtros**:
+
+1. `ETIQUETAS_NO_AVE`: conjunto con todas las clases que no son aves. Se
+   descartan **siempre**, sin importar su confianza. BirdWatch solo identifica
+   aves.
+2. `CONFIANZA_MINIMA = 0.20`: solo se muestran y se guardan las coincidencias
+   con al menos 20% de confianza (las aves reales suelen superar el 30%).
+
+Si sientes que se pierden aves reales, baja el umbral a `0.15`; si aparecen
+aves poco probables, súbelo a `0.25` o `0.30`. Para excluir otra clase, añade
+su nombre común a `ETIQUETAS_NO_AVE`.
 
 > Los nombres comunes llegan en inglés; `core/traducciones.py` traduce al
 > español las especies más conocidas de Colombia (se puede ampliar agregando

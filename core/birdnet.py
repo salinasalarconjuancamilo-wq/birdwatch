@@ -28,6 +28,27 @@ LONGITUD = -74.3300
 # positivos con voces humanas.
 CONFIANZA_MINIMA = 0.20
 
+# Clases de BirdNET que NO son aves. Se descartan SIEMPRE, sin importar su
+# confianza: BirdWatch solo identifica aves. BirdNET puede puntuar alto una
+# voz humana (por ejemplo 32%), así que el umbral por sí solo no basta.
+# Esta lista son las clases del modelo cuya etiqueta no es un ave (nombre
+# científico igual al común): humanos, ruido, motores, insectos, etc.
+ETIQUETAS_NO_AVE = {
+    "Dog",
+    "Engine",
+    "Environmental",
+    "Fireworks",
+    "Gryllus assimilis",       # grillo
+    "Gun",
+    "Human non-vocal",
+    "Human vocal",
+    "Human whistle",
+    "Miogryllus saussurei",    # grillo
+    "Noise",
+    "Power tools",
+    "Siren",
+}
+
 # Filtro por región: cuando es True, el análisis se limita a las aves
 # de la región de San Antonio del Tequendama (filtro por ubicación de
 # BirdNET, ~480 especies). Cuando es False, BirdNET puede devolver
@@ -171,6 +192,10 @@ def analizar_audio(datos_wav, nombre="grabacion.wav"):
         resultados = datos
 
     return [
-        _interpretar_etiqueta(etiqueta, confianza)
-        for etiqueta, confianza in resultados
+        deteccion
+        for deteccion in (
+            _interpretar_etiqueta(etiqueta, confianza)
+            for etiqueta, confianza in resultados
+        )
+        if deteccion["especie_en"] not in ETIQUETAS_NO_AVE
     ]
