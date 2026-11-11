@@ -20,13 +20,13 @@
         </p>
         <a class="boton-ave"
            href="{% if user.is_authenticated %}{% url 'identificar' %}{% else %}{% url 'entrar' %}?siguiente=/identificar/{% endif %}">
-            <img src="{% static 'img/logo.svg' %}" alt="" width="46" height="46">
+            <img src="{% static 'img/logo.jpeg' %}" alt="" width="46" height="46">
             <span>Identificar un ave por su canto</span>
         </a>
         <p class="portada-nota">Usa el micrófono · gratis · hecho para el colegio y la familia</p>
     </div>
     <div class="portada-arte" aria-hidden="true">
-        <img src="{% static 'img/logo.svg' %}" alt="" width="230" height="230">
+        <img src="{% static 'img/logo.jpeg' %}" alt="" width="230" height="230">
         <span class="hoja hoja-1"></span>
         <span class="hoja hoja-2"></span>
         <span class="hoja hoja-3"></span>
@@ -95,7 +95,7 @@
     <p>Grábalo con BirdWatch y descúbrelo en segundos.</p>
     <a class="boton-ave"
        href="{% if user.is_authenticated %}{% url 'identificar' %}{% else %}{% url 'entrar' %}?siguiente=/identificar/{% endif %}">
-        <img src="{% static 'img/logo.svg' %}" alt="" width="40" height="40">
+        <img src="{% static 'img/logo.jpeg' %}" alt="" width="40" height="40">
         <span>Probar ahora</span>
     </a>
 </section>
