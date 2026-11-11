@@ -355,7 +355,7 @@
         if (!lista.length) {
             var vacio = document.createElement('p');
             vacio.className = 'sin-resultados';
-            vacio.textContent = 'No se identificaron aves con confianza suficiente. Acércate al canto o graba entre 3 y 15 segundos.';
+            vacio.textContent = 'No se identificó el chinigüe (copetón) con confianza suficiente. Acércate al canto, evita el ruido y graba entre 3 y 15 segundos.';
             resultados.appendChild(vacio);
             return;
         }

@@ -20,6 +20,28 @@ BIRDNET_URL = os.environ.get("BIRDNET_URL", "http://localhost:8080")
 LATITUD = 4.6267
 LONGITUD = -74.3300
 
+# ESPECIES QUE LA APP PUEDE IDENTIFICAR (por ahora).
+#
+# BirdNET conoce más de 6.000 aves del mundo; para que BIRDWATCH no confunda
+# al usuario con resultados inesperados, aquí se decide cuáles puede devolver.
+# Cada etiqueta tiene el formato "NombreCientifico_NombreComunEnIngles".
+#
+# Por el momento SOLO se identifica al chinigüe (copetón), el ave insignia
+# de la app. Para permitir más aves, agrega su etiqueta a la lista; para
+# quitar la restricción por completo y dejar que BirdNET devuelva cualquier
+# ave de la región, cambia la lista a [] (vacía).
+#
+# Ejemplos de etiquetas:
+#   "Zonotrichia capensis_Rufous-collared Sparrow"  -> chinigüe (copetón)
+#   "Colibri coruscans_Sparkling Violetear"          -> colibrí chillón
+#   "Turdus fuscater_Great Thrush"                   -> mirla lugubris
+#
+# La lista completa de etiquetas vive en el servidor BirdNET y se puede
+# consultar en la documentación del paquete birdnet_analyzer.
+ESPECIES_PERMITIDAS = [
+    "Zonotrichia capensis_Rufous-collared Sparrow",  # chinigüe (copetón)
+]
+
 TIPOS_SONIDO = {
     "Song and call": "Canto y llamado",
     "Song": "Canto",
@@ -95,6 +117,10 @@ def analizar_audio(datos_wav, nombre="grabacion.wav"):
         "pmode": "avg",
         "num_results": 10,
         "save": False,
+        # Lista de especies permitidas: si no está vacía, BirdNET SOLO puede
+        # devolver esas especies (restricción del lado del analizador).
+        # Ver el comentario de ESPECIES_PERMITIDAS más arriba.
+        "slist": ESPECIES_PERMITIDAS,
     }
 
     frontera = "BirdWatchPythonCliente"

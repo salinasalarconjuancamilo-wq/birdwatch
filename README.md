@@ -14,6 +14,10 @@ ni permisos de administrador.
 - **Botón con el logo del ave** (un colibrí) que abre la página de
   identificación: pide permiso del micrófono, graba entre 3 y 15 segundos y
   envía el audio a BirdNET con la ubicación del municipio (4.6267, -74.3300).
+- **Por ahora el identificador reconoce solo al chinigüe (copetón)**
+  (*Zonotrichia capensis*), el ave insignia de esta primera versión. Ver
+  la sección ["Especie identificada"](#especie-identificada-chinigüe-copetón)
+  para agregar más aves.
 - **Detecciones guardadas en PostgreSQL** con su nombre en español,
   nombre científico y porcentaje de confianza; se consultan en "Mis últimas
   detecciones" y en el administrador de Django (`/admin/`).
@@ -115,6 +119,30 @@ herramientas\python\python.exe manage.py loaddata aves/fixtures/datos_iniciales.
 | Web Django | 3000 | Aplicación (todas las páginas) |
 | BirdNET | 8080 | Analizador de cantos (`servidor_birdnet.py`) |
 | PostgreSQL | 5433 | Base de datos `birdwatch` (usuario `birdwatch`) |
+
+## Especie identificada: chinigüe (copetón)
+
+Por decisión del proyecto, en esta primera versión la app **solo identifica al
+chinigüe (copetón)** (*Zonotrichia capensis*), aunque BirdNET conozca más de
+6.000 aves del mundo. Así el resultado siempre es claro y controlado.
+
+La lista de especies permitidas vive en `core/birdnet.py`, en la constante
+`ESPECIES_PERMITIDAS`:
+
+```python
+ESPECIES_PERMITIDAS = [
+    "Zonotrichia capensis_Rufous-collared Sparrow",  # chinigüe (copetón)
+]
+```
+
+Cada etiqueta tiene el formato `"NombreCientifico_NombreComunEnIngles"`.
+Para agregar otra ave, añade su etiqueta a la lista; para dejar que BirdNET
+devuelva cualquier ave de la región, cambia la lista a `[]` (vacía). Después
+de editar, reinicia la web y el analizador con `DETENER-BIRDWATCH.bat` y
+`INICIAR-BIRDWATCH.bat`.
+
+> La lista completa de etiquetas está en el archivo de etiquetas del modelo
+> BirdNET (`labels.txt` del paquete `birdnet_analyzer`).
 
 ## Configuración avanzada
 

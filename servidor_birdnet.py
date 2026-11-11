@@ -16,6 +16,8 @@ Campos aceptados en "meta":
     overlap      traslape entre fragmentos de 3 s (por defecto 0)
     pmode        "avg" (promedio) o "max" para combinar fragmentos
     num_results  cantidad máxima de especies a devolver (10)
+    slist        lista de etiquetas BirdNET permitidas; si viene, el análisis
+                 SOLO puede devolver esas especies (por ejemplo, el chinigüe)
     save         true para conservar el archivo recibido en --spath
 
 Uso:
@@ -82,7 +84,19 @@ def preparar_configuracion(meta):
     umbral = float(meta.get("sf_thresh", 0.03))
     cfg.LOCATION_FILTER_THRESHOLD = umbral
     cfg.SPECIES_LIST_FILE = None
-    if lat != -1 and lon != -1:
+
+    # Lista de especies permitidas por el cliente (etiquetas BirdNET
+    # "NombreCientifico_NombreComun"). Si viene, tiene prioridad sobre la
+    # lista de la ubicación: así la app puede identificar, por ejemplo,
+    # solo el chinigüe (copetón).
+    permitidas = [
+        str(etiqueta).strip()
+        for etiqueta in (meta.get("slist") or [])
+        if str(etiqueta).strip()
+    ]
+    if permitidas:
+        cfg.SPECIES_LIST = permitidas
+    elif lat != -1 and lon != -1:
         cfg.SPECIES_LIST = get_species_list(lat, lon, semana, umbral)
     else:
         cfg.SPECIES_LIST = None

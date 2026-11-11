@@ -15,7 +15,8 @@
             BirdWatch es el aplicativo del municipio para reconocer nuestras aves por su
             canto: graba unos segundos con el micrófono y la inteligencia artificial de
             <strong>BirdNET</strong> (Laboratorio de Ornitología de Cornell) te dirá qué
-            especie suena cerca de ti.
+            especie suena cerca de ti. En esta primera versión el identificador aprende
+            a reconocer al <strong>chinigüe (copetón)</strong>, nuestro ave insignia.
         </p>
         <a class="boton-ave"
            href="{% if user.is_authenticated %}{% url 'identificar' %}{% else %}{% url 'entrar' %}?siguiente=/identificar/{% endif %}">
