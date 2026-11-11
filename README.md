@@ -11,10 +11,11 @@ inteligencia artificial **BirdNET** del Laboratorio de Ornitología de Cornell.
   secciones de **visión y misión** del proyecto.
 - **Botón con el logo del ave** (un colibrí) que abre la página de
   identificación: pide permiso del micrófono, graba entre 3 y 15 segundos y
-  envía el audio a BirdNET con la ubicación del municipio (4.6267, -74.3300).
-- **Por ahora el identificador reconoce solo al chinigüe (copetón)**
-  (*Zonotrichia capensis*), el ave insignia de esta primera versión. Ver
-  la sección ["Especie identificada"](#especie-identificada-chinigüe-copetón).
+  envía el audio a BirdNET.
+- **Identifica cualquier ave que conozca la IA BirdNET** (más de 6.000
+  especies del mundo). Ver la sección
+  ["Especies identificables"](#especies-identificables) para restringir o
+  filtrar por región.
 - **Detecciones guardadas en PostgreSQL** con su nombre en español,
   nombre científico y porcentaje de confianza; se consultan en "Mis últimas
   detecciones" y en el administrador de Django (`/admin/`).
@@ -134,26 +135,39 @@ Sus datos iniciales viven en `aves/fixtures/datos_iniciales.json`.
 | BirdNET | 8080 | Analizador de cantos (`servidor_birdnet.py`) |
 | PostgreSQL | 5432 | Base de datos `birdwatch` (servicio del equipo) |
 
-## Especie identificada: chinigüe (copetón)
+## Especies identificables
 
-Por decisión del proyecto, en esta primera versión la app **solo identifica al
-chinigüe (copetón)** (*Zonotrichia capensis*), aunque BirdNET conozca más de
-6.000 aves del mundo. Así el resultado siempre es claro y controlado.
+Por decisión del proyecto, al principio la app solo identificaba al chinigüe
+(copetón) (*Zonotrichia capensis*). Ahora **no hay restricción**: la IA
+BirdNET puede devolver cualquiera de las ~6.500 especies que conoce en todo
+el mundo.
 
-La lista de especies permitidas vive en `core/birdnet.py`, en la constante
-`ESPECIES_PERMITIDAS`:
+Dos ajustes viven en `core/birdnet.py`:
 
-```python
-ESPECIES_PERMITIDAS = [
-    "Zonotrichia capensis_Rufous-collared Sparrow",  # chinigüe (copetón)
-]
-```
+1. `ESPECIES_PERMITIDAS`: lista de etiquetas
+   `"NombreCientifico_NombreComunEnIngles"`. Con `[]` (vacía, valor actual)
+   no hay restricción. Para limitar la app a unas pocas aves, añade sus
+   etiquetas; por ejemplo:
 
-Cada etiqueta tiene el formato `"NombreCientifico_NombreComunEnIngles"`.
-Para agregar otra ave, añade su etiqueta a la lista; para dejar que BirdNET
-devuelva cualquier ave de la región, cambia la lista a `[]` (vacía). Después
-de editar, reinicia la web y el analizador con `DETENER-BIRDWATCH.bat` y
+   ```python
+   ESPECIES_PERMITIDAS = [
+       "Zonotrichia capensis_Rufous-collared Sparrow",  # chinigüe (copetón)
+   ]
+   ```
+
+2. `FILTRAR_POR_REGION`: cuando es `True`, el análisis usa las coordenadas de
+   San Antonio del Tequendama (4.6267, -74.3300) y BirdNET solo considera las
+   ~480 especies de la región. Con `False` (valor actual) considera todas las
+   especies del mundo. El filtro regional evita confusiones con aves de otros
+   continentes, así que puede ser útil activarlo.
+
+Después de editar, reinicia la web con `DETENER-BIRDWATCH.bat` y
 `INICIAR-BIRDWATCH.bat`.
+
+> Los nombres comunes llegan en inglés; `core/traducciones.py` traduce al
+> español las especies más conocidas de Colombia (se puede ampliar agregando
+> entradas al diccionario). Las que no estén muestran su nombre en inglés y
+> el nombre científico.
 
 ## Configuración avanzada
 
