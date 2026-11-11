@@ -1,3 +1,6 @@
 from django.shortcuts import render
 
-# Create your views here.
+
+def home(request):
+    """Página principal (home) del Birdwatch."""
+    return render(request, "aves/home.html")

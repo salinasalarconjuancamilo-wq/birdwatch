@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Birdwatch 🐦 — Registro de avistamientos de aves</title>
+    <meta name="description" content="Birdwatch: base de datos para el registro de avistamientos de aves con identidad visual de Colombia.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* ============ BASE ============ */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --verde-oscuro: #03211a;
+            --verde-profundo: #053528;
+            --verde: #0b8a5f;
+            --turquesa: #2dd4bf;
+            --amarillo: #ffc300;
+            --naranja: #ff6b1a;
+            --rojo: #e63946;
+            --azul: #1ea7ff;
+            --blanco: #f2fffb;
+        }
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background: var(--verde-oscuro);
+            color: var(--blanco);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+        h1, h2, h3 { font-family: 'Bebas Neue', sans-serif; letter-spacing: 1px; font-weight: 400; }
+        a { text-decoration: none; color: inherit; }
+        .container { width: min(1140px, 92%); margin: 0 auto; }
+
+        /* ============ BOTONES ============ */
+        .btn {
+            display: inline-flex; align-items: center; justify-content: center; gap: .6rem;
+            padding: .95rem 2rem; border-radius: 999px;
+            font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 1rem;
+            border: none; cursor: pointer; transition: all .3s ease; text-align: center;
+        }
+        .btn-amarillo { background: linear-gradient(135deg, var(--amarillo), var(--naranja)); color: #3a2200; box-shadow: 0 10px 28px rgba(255, 163, 38, .38); }
+        .btn-amarillo:hover { transform: translateY(-3px) scale(1.02); box-shadow: 0 16px 40px rgba(255, 163, 38, .55); }
+        .btn-azul { border: 2px solid var(--azul); color: var(--azul); background: rgba(30, 167, 255, .08); }
+        .btn-azul:hover { background: rgba(30, 167, 255, .22); transform: translateY(-3px); }
+        .btn-sm { padding: .65rem 1.5rem; font-size: .9rem; }
+
+        /* ============ NAVEGACION ============ */
+        .nav { position: sticky; top: 0; z-index: 50; background: rgba(3, 33, 26, 0.75); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border-bottom: 1px solid rgba(255, 255, 255, .08); }
+        .nav-inner { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 14px 0; }
+        .logo { font-family: 'Bebas Neue', sans-serif; font-size: 2rem; color: var(--amarillo); display: inline-flex; align-items: center; gap: .55rem; }
+        .logo span { color: #fff; }
+        .nav-links { display: flex; gap: 1.9rem; font-weight: 700; font-size: .98rem; }
+        .nav-links a { color: rgba(255, 255, 255, .85); transition: color .3s; }
+        .nav-links a:hover { color: var(--amarillo); }
+
+        /* ============ HERO ============ */
+        .hero {
+            position: relative; min-height: 92vh; display: flex; align-items: center; justify-content: center;
+            text-align: center; padding: 150px 0 90px; overflow: hidden;
+            background:
+                radial-gradient(620px circle at 18% 18%, rgba(255, 195, 0, .32), transparent 62%),
+                radial-gradient(720px circle at 85% 78%, rgba(255, 107, 22, .38), transparent 62%),
+                radial-gradient(820px circle at 50% 115%, rgba(45, 212, 191, .28), transparent 60%),
+                linear-gradient(135deg, #03211a 0%, #053528 38%, #0f766e 64%, #d97706 100%);
+        }
+        .bird { position: absolute; font-size: 4.5rem; opacity: .45; filter: drop-shadow(0 12px 22px rgba(0, 0, 0, .45)); animation: flotar 7s ease-in-out infinite alternate; pointer-events: none; }
+        .bird-1 { top: 13%; left: 7%; }
+        .bird-2 { top: 22%; right: 8%; font-size: 3.4rem; animation-delay: 1.8s; }
+        .bird-3 { bottom: 10%; left: 14%; font-size: 3rem; animation-delay: 3.4s; }
+        .bird-4 { bottom: 18%; right: 16%; font-size: 2.6rem; animation-delay: 5s; }
+        @keyframes flotar { from { transform: translateY(-16px) rotate(-10deg); } to { transform: translateY(20px) rotate(12deg); } }
+
+        .hero-inner { position: relative; z-index: 2; animation: aparecer 1s ease both; }
+        @keyframes aparecer { from { opacity: 0; transform: translateY(26px); } to { opacity: 1; transform: translateY(0); } }
+        .animar { animation: aparecer 1s ease both; }
+
+        .badge { display: inline-block; padding: .45rem 1.25rem; border-radius: 999px; background: rgba(255, 255, 255, .1); border: 1px solid rgba(255, 255, 255, .28); backdrop-filter: blur(6px); font-weight: 700; letter-spacing: .14em; text-transform: uppercase; font-size: .75rem; color: var(--amarillo); margin-bottom: 1.7rem; }
+        .titulo { font-size: clamp(5rem, 16vw, 10.5rem); line-height: .88; color: #fff; text-shadow: 0 14px 44px rgba(0, 0, 0, .5); }
+        .titulo .palabra1 { display: block; color: var(--amarillo); text-shadow: 0 14px 44px rgba(0, 0, 0, .5), 0 0 60px rgba(255, 195, 0, .35); }
+        .titulo .palabra2 { display: block; color: var(--azul); text-shadow: 0 14px 44px rgba(0, 0, 0, .5), 0 0 60px rgba(30, 167, 255, .4); }
+        .subtitulo { max-width: 620px; margin: 1.6rem auto 0; font-size: 1.12rem; color: rgba(255, 255, 255, .92); }
+        .hero-cta { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; margin-top: 2.6rem; }
+        .stats { display: flex; gap: 3rem; justify-content: center; flex-wrap: wrap; margin-top: 3.6rem; }
+        .stat { text-align: center; }
+        .stat strong { display: block; font-family: 'Bebas Neue', sans-serif; font-size: 3.2rem; line-height: 1; color: var(--amarillo); text-shadow: 0 6px 20px rgba(255, 163, 38, .4); }
+        .stat span { font-size: .78rem; text-transform: uppercase; letter-spacing: .16em; color: rgba(255, 255, 255, .75); font-weight: 700; }
+
+        /* ============ SECCIONES ============ */
+        .section { padding: 110px 0; }
+        .seccion-titulo { font-size: clamp(2.7rem, 6.5vw, 4.2rem); text-align: center; color: #fff; line-height: 1; }
+        .seccion-titulo em { font-style: normal; color: var(--amarillo); text-shadow: 0 0 34px rgba(255, 195, 0, .35); }
+        .subtitulo-seccion { text-align: center; max-width: 620px; margin: 1.2rem auto 0; color: rgba(255, 255, 255, .75); }
+
+        .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); gap: 1.8rem; margin-top: 3.6rem; }
+        .tarjeta { position: relative; background: linear-gradient(160deg, rgba(255, 255, 255, .09), rgba(255, 255, 255, .03)); border: 1px solid rgba(255, 255, 255, .14); border-radius: 26px; padding: 2.6rem 2.2rem; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); transition: transform .35s ease, border-color .35s ease, box-shadow .35s ease; overflow: hidden; }
+        .tarjeta:hover { transform: translateY(-8px); border-color: rgba(255, 255, 255, .4); box-shadow: 0 26px 60px rgba(0, 0, 0, .5); }
+        .icono { width: 66px; height: 66px; border-radius: 20px; display: flex; align-items: center; justify-content: center; font-size: 2.1rem; margin-bottom: 1.5rem; background: linear-gradient(135deg, var(--verde), var(--turquesa)); box-shadow: 0 12px 26px rgba(11, 138, 95, .45); }
+        .tarjeta:nth-child(1) .icono { background: linear-gradient(135deg, var(--amarillo), var(--naranja)); box-shadow: 0 12px 26px rgba(255, 163, 38, .45); }
+        .tarjeta:nth-child(2) .icono { background: linear-gradient(135deg, var(--azul), var(--turquesa)); box-shadow: 0 12px 26px rgba(30, 167, 255, .4); }
+        .tarjeta:nth-child(3) .icono { background: linear-gradient(135deg, var(--rojo), var(--naranja)); box-shadow: 0 12px 26px rgba(230, 57, 70, .4); }
+        .tarjeta h3 { font-size: 2.3rem; color: #fff; margin-bottom: .8rem; }
+        .tarjeta p { color: rgba(255, 255, 255, .8); font-size: .98rem; margin-bottom: 1.4rem; }
+        .tarjeta a { font-weight: 800; color: var(--amarillo); display: inline-flex; align-items: center; gap: .4rem; }
+        .tarjeta a:hover { color: #fff; }
+
+        /* ============ SUPER USUARIO ============ */
+        .super { padding: 30px 0 120px; }
+        .tarjeta-super { position: relative; overflow: hidden; border-radius: 32px; padding: clamp(2.2rem, 5vw, 4rem); background: linear-gradient(140deg, rgba(255, 255, 255, .1), rgba(255, 255, 255, .02)); border: 1px solid rgba(255, 195, 0, .4); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); display: grid; grid-template-columns: 1.3fr .7fr; gap: 2rem; align-items: center; }
+        .tarjeta-super::before { content: ""; position: absolute; width: 340px; height: 340px; border-radius: 50%; background: radial-gradient(circle, rgba(255, 195, 0, .22), transparent 70%); top: -140px; right: -80px; }
+        .super-texto h3 { font-size: 3rem; color: var(--amarillo); }
+        .super-texto p { color: rgba(255, 255, 255, .82); margin-top: .8rem; max-width: 540px; }
+        .super-cta { position: relative; z-index: 2; }
+        .super-nota { margin-top: .9rem; font-size: .85rem; color: rgba(255, 255, 255, .65); text-align: center; }
+
+        /* ============ FOOTER ============ */
+        footer { border-top: 1px solid rgba(255, 255, 255, .08); padding: 2.6rem 0; text-align: center; color: rgba(255, 255, 255, .6); font-size: .92rem; }
+        footer .logo { font-size: 1.6rem; justify-content: center; margin-bottom: .4rem; display: flex; }
+
+        /* ============ RESPONSIVE ============ */
+        @media (max-width: 860px) {
+            .nav-links { display: none; }
+            .tarjeta-super { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 560px) { .stats { gap: 1.6rem; } }
+    </style>
+</head>
+<body>
+
+    <!-- NAVEGACION -->
+    <header class="nav">
+        <div class="container nav-inner">
+            <a href="/" class="logo">🦜 <span>Birdwatch</span></a>
+            <nav class="nav-links">
+                <a href="/#inicio">Inicio</a>
+                <a href="#servicios">Servicios</a>
+                <a href="#superusuario">Super Usuario</a>
+            </nav>
+            <a href="/admin/" class="btn btn-amarillo btn-sm">Panel Admin</a>
+        </div>
+    </header>
+
+    <main>
+        <!-- HERO -->
+        <section class="hero" id="inicio">
+            <span class="bird bird-1">🦜</span>
+            <span class="bird bird-2">🦅</span>
+            <span class="bird bird-3">🐦</span>
+            <span class="bird bird-4">🦩</span>
+            <div class="container hero-inner animar">
+                <span class="badge">Aves de Colombia 🇨🇴</span>
+                <h1 class="titulo"><span class="palabra1">BIRD</span><span class="palabra2">WATCH</span></h1>
+                <p class="subtitulo">Birdwatch es la base de datos para registrar cada avistamiento de aves: desde el cóndor andino del paramo hasta la golondrina que vuela sobre el campus. Conserva el vuelo, una observación a la vez.</p>
+                <div class="hero-cta">
+                    <a href="/admin/" class="btn btn-amarillo">🐦 Registrar avistamiento</a>
+                    <a href="#servicios" class="btn btn-azul">Conocer el proyecto</a>
+                </div>
+                <div class="stats">
+                    <div class="stat"><strong>5+</strong><span>Especies catalogadas</span></div>
+                    <div class="stat"><strong>5</strong><span>Avistamientos registrados</span></div>
+                    <div class="stat"><strong>5</strong><span>Lugares de vuelo</span></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SERVICIOS -->
+        <section class="section" id="servicios">
+            <div class="container">
+                <h2 class="seccion-titulo animar">Nuestras <em>plataformas</em></h2>
+                <p class="subtitulo-seccion animar">Tres pilares para entender el cielo de Colombia.</p>
+                <div class="cards">
+                    <article class="tarjeta animar">
+                        <div class="icono">🦜</div>
+                        <h3>Catálogo</h3>
+                        <p>Familias, colores, tamaños y nombres científicos de cada especie que se puede observar.</p>
+                        <a href="/admin/">Explorar el catálogo →</a>
+                    </article>
+                    <article class="tarjeta animar" style="animation-delay: .15s;">
+                        <div class="icono">🦅</div>
+                        <h3>Avistamientos</h3>
+                        <p>Registro de fecha, lugar, cantidad de ejemplares y notas de cada avistamiento.</p>
+                        <a href="/admin/">Registrar un avistamiento →</a>
+                    </article>
+                    <article class="tarjeta animar" style="animation-delay: .3s;">
+                        <div class="icono">🦩</div>
+                        <h3>Rutas de vuelo</h3>
+                        <p>Del paramo andino al bosque tropical: cada vuelo cuenta una historia de conservación.</p>
+                        <a href="#inicio">Ver aves →</a>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <!-- SUPER USUARIO -->
+        <section class="super" id="superusuario">
+            <div class="container">
+                <div class="tarjeta-super animar">
+                    <div class="super-texto">
+                        <h3>Super Usuario</h3>
+                        <p>Gestiona el catálogo de aves, registra avistamientos y controla el acceso del equipo desde el panel de administración de Django.</p>
+                    </div>
+                    <div class="super-cta">
+                        <a href="/admin/" class="btn btn-amarillo">🐦 Ir al Panel de Admin</a>
+                        <p class="super-nota">Acceso restringido: crea tu usuario con <code>python manage.py createsuperuser</code></p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <div class="logo">🦜 Birdwatch</div>
+            <p>Registro de avistamientos de aves · Colombia</p>
+        </div>
+    </footer>
+
+</body>
+</html>
