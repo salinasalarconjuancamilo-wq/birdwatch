@@ -77,22 +77,33 @@ WSGI_APPLICATION = "birdwatch.wsgi.application"
 # puerto 5432). Antes usaba el PostgreSQL portátil del proyecto en 5433.
 # Se puede sobreescribir con la variable de entorno DATABASE_URL, por ejemplo:
 #   set DATABASE_URL=postgres://usuario:clave@servidor:5432/basedatos
-DATABASE_URL = os.environ.get(
-    "DATABASE_URL", "postgres://birdwatch:birdwatch@localhost:5432/birdwatch"
-)
-
-_u = urlparse(DATABASE_URL)
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": _u.path.lstrip("/") or "birdwatch",
-        "USER": _u.username or "birdwatch",
-        "PASSWORD": _u.password or "birdwatch",
-        "HOST": _u.hostname or "localhost",
-        "PORT": _u.port or 5432,
-        "CONN_MAX_AGE": 60,
+#
+# Para equipos sin PostgreSQL se puede usar SQLite con la variable de entorno
+# DB_ENGINE=sqlite (el archivo de la base queda en db.sqlite3).
+if os.environ.get("DB_ENGINE", "").strip().lower() == "sqlite":
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+        }
     }
-}
+else:
+    DATABASE_URL = os.environ.get(
+        "DATABASE_URL", "postgres://birdwatch:birdwatch@localhost:5432/birdwatch"
+    )
+
+    _u = urlparse(DATABASE_URL)
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": _u.path.lstrip("/") or "birdwatch",
+            "USER": _u.username or "birdwatch",
+            "PASSWORD": _u.password or "birdwatch",
+            "HOST": _u.hostname or "localhost",
+            "PORT": _u.port or 5432,
+            "CONN_MAX_AGE": 60,
+        }
+    }
 
 # ------------------------------------------------------------------ Autenticación
 LOGIN_URL = "/entrar/"
