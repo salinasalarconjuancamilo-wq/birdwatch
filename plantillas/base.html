@@ -6,8 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="BirdWatch · Identifica las aves de San Antonio del Tequendama (Cundinamarca, Colombia) por su canto con la inteligencia artificial de BirdNET.">
     <meta name="theme-color" content="#1b4332">
-    <link rel="icon" type="image/svg+xml" href="{% static 'img/logo.svg' %}">
-    <link rel="apple-touch-icon" href="{% static 'img/logo.svg' %}">
+    <link rel="icon" type="image/png" href="{% static 'img/logo.png' %}">
+    <link rel="apple-touch-icon" href="{% static 'img/logo.png' %}">
     <link rel="manifest" href="{% static 'manifest.webmanifest' %}">
     <link rel="stylesheet" href="{% static 'css/estilos.css' %}">
     <title>{% block titulo %}Inicio{% endblock %} · BirdWatch</title>
@@ -18,13 +18,16 @@
 
 <header class="cabecera">
     <a class="marca" href="{% url 'inicio' %}">
-        <img class="marca-logo" src="{% static 'img/logo.svg' %}" alt="Colibrí, logotipo de BirdWatch" width="40" height="40">
+        <img class="marca-logo" src="{% static 'img/logo.png' %}" alt="Logotipo de BirdWatch" width="40" height="40">
         <span class="marca-nombre">Bird<b>Watch</b></span>
     </a>
     <nav class="navegacion" aria-label="Navegación principal">
         <a class="navegacion-enlace" href="{% url 'inicio' %}">Inicio</a>
         <a class="navegacion-enlace" href="{% url 'inicio' %}#vision">Visión y misión</a>
         {% if user.is_authenticated %}
+            {% if user.is_superuser %}
+                <a class="navegacion-enlace" href="{% url 'carrusel_admin' %}">Carrusel</a>
+            {% endif %}
             <a class="navegacion-enlace enlace-activo" href="{% url 'identificar' %}">Identificar</a>
             <form class="formulario-salir" method="post" action="{% url 'salir' %}">
                 {% csrf_token %}
@@ -50,7 +53,7 @@
 
 <footer class="pie">
     <div class="pie-contenido">
-        <img class="pie-logo" src="{% static 'img/logo.svg' %}" alt="" width="56" height="56">
+        <img class="pie-logo" src="{% static 'img/logo.png' %}" alt="Logotipo de BirdWatch" width="56" height="56">
         <div class="pie-texto">
             <p class="pie-nombre">BirdWatch · San Antonio del Tequendama, Cundinamarca</p>
             <p>

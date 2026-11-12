@@ -20,27 +20,57 @@ BIRDNET_URL = os.environ.get("BIRDNET_URL", "http://localhost:8080")
 LATITUD = 4.6267
 LONGITUD = -74.3300
 
-# ESPECIES QUE LA APP PUEDE IDENTIFICAR (por ahora).
+# Confianza mínima (0 a 1) para reportar una identificación.
+# BirdNET asigna alguna probabilidad a cualquier sonido (voz humana, ruido,
+# música...), por eso conviene un umbral alto: con 0.20 se descartan las
+# coincidencias débiles y las aves reales (que suelen superar 0.30) siguen
+# apareciendo. Antes se mostraba desde 0.01 (1%), lo que producía falsos
+# positivos con voces humanas.
+CONFIANZA_MINIMA = 0.20
+
+# Clases de BirdNET que NO son aves. Se descartan SIEMPRE, sin importar su
+# confianza: BirdWatch solo identifica aves. BirdNET puede puntuar alto una
+# voz humana (por ejemplo 32%), así que el umbral por sí solo no basta.
+# Esta lista son las clases del modelo cuya etiqueta no es un ave (nombre
+# científico igual al común): humanos, ruido, motores, insectos, etc.
+ETIQUETAS_NO_AVE = {
+    "Dog",
+    "Engine",
+    "Environmental",
+    "Fireworks",
+    "Gryllus assimilis",       # grillo
+    "Gun",
+    "Human non-vocal",
+    "Human vocal",
+    "Human whistle",
+    "Miogryllus saussurei",    # grillo
+    "Noise",
+    "Power tools",
+    "Siren",
+}
+
+# Filtro por región: cuando es True, el análisis se limita a las aves
+# de la región de San Antonio del Tequendama (filtro por ubicación de
+# BirdNET, ~480 especies). Cuando es False, BirdNET puede devolver
+# cualquiera de las ~6.500 especies que conoce en todo el mundo.
+FILTRAR_POR_REGION = False
+
+# ESPECIES QUE LA APP PUEDE IDENTIFICAR.
 #
 # BirdNET conoce más de 6.000 aves del mundo; para que BIRDWATCH no confunda
-# al usuario con resultados inesperados, aquí se decide cuáles puede devolver.
+# al usuario con resultados inesperados, aquí se puede decidir cuáles devuelve.
 # Cada etiqueta tiene el formato "NombreCientifico_NombreComunEnIngles".
 #
-# Por el momento SOLO se identifica al chinigüe (copetón), el ave insignia
-# de la app. Para permitir más aves, agrega su etiqueta a la lista; para
-# quitar la restricción por completo y dejar que BirdNET devuelva cualquier
-# ave de la región, cambia la lista a [] (vacía).
+# Lista vacía ([]) = sin restricción: BirdNET devuelve cualquier ave que
+# reconozca en el audio. Para restringir de nuevo, añade etiquetas; por
+# ejemplo, para solo el chinigüe (copetón):
+#   "Zonotrichia capensis_Rufous-collared Sparrow"
 #
 # Ejemplos de etiquetas:
 #   "Zonotrichia capensis_Rufous-collared Sparrow"  -> chinigüe (copetón)
 #   "Colibri coruscans_Sparkling Violetear"          -> colibrí chillón
 #   "Turdus fuscater_Great Thrush"                   -> mirla lugubris
-#
-# La lista completa de etiquetas vive en el servidor BirdNET y se puede
-# consultar en la documentación del paquete birdnet_analyzer.
-ESPECIES_PERMITIDAS = [
-    "Zonotrichia capensis_Rufous-collared Sparrow",  # chinigüe (copetón)
-]
+ESPECIES_PERMITIDAS = []
 
 TIPOS_SONIDO = {
     "Song and call": "Canto y llamado",
@@ -108,14 +138,17 @@ def analizar_audio(datos_wav, nombre="grabacion.wav"):
     """
     meta = {
         "filename": nombre,
-        "lat": LATITUD,
-        "lon": LONGITUD,
-        "week": _semana_del_ano(),
+        # Ubicación: solo se envía cuando FILTRAR_POR_REGION es True; si no,
+        # BirdNET evalúa el audio contra todas las especies que conoce.
+        "lat": LATITUD if FILTRAR_POR_REGION else -1,
+        "lon": LONGITUD if FILTRAR_POR_REGION else -1,
+        "week": _semana_del_ano() if FILTRAR_POR_REGION else -1,
         "sf_thresh": 0.03,
         "sensitivity": 1.0,
         "overlap": 0.0,
         "pmode": "avg",
         "num_results": 10,
+        "min_conf": CONFIANZA_MINIMA,
         "save": False,
         # Lista de especies permitidas: si no está vacía, BirdNET SOLO puede
         # devolver esas especies (restricción del lado del analizador).
@@ -159,6 +192,10 @@ def analizar_audio(datos_wav, nombre="grabacion.wav"):
         resultados = datos
 
     return [
-        _interpretar_etiqueta(etiqueta, confianza)
-        for etiqueta, confianza in resultados
+        deteccion
+        for deteccion in (
+            _interpretar_etiqueta(etiqueta, confianza)
+            for etiqueta, confianza in resultados
+        )
+        if deteccion["especie_en"] not in ETIQUETAS_NO_AVE
     ]

@@ -15,18 +15,18 @@
             BirdWatch es el aplicativo del municipio para reconocer nuestras aves por su
             canto: graba unos segundos con el micrófono y la inteligencia artificial de
             <strong>BirdNET</strong> (Laboratorio de Ornitología de Cornell) te dirá qué
-            especie suena cerca de ti. En esta primera versión el identificador aprende
-            a reconocer al <strong>chinigüe (copetón)</strong>, nuestro ave insignia.
+            especie suena cerca de ti. El identificador reconoce las más de
+            <strong>6.000 especies de aves del mundo</strong> que conoce la IA BirdNET.
         </p>
         <a class="boton-ave"
            href="{% if user.is_authenticated %}{% url 'identificar' %}{% else %}{% url 'entrar' %}?siguiente=/identificar/{% endif %}">
-            <img src="{% static 'img/logo.svg' %}" alt="" width="46" height="46">
+            <img src="{% static 'img/logo.png' %}" alt="" width="46" height="46">
             <span>Identificar un ave por su canto</span>
         </a>
         <p class="portada-nota">Usa el micrófono · gratis · hecho para el colegio y la familia</p>
     </div>
     <div class="portada-arte" aria-hidden="true">
-        <img src="{% static 'img/logo.svg' %}" alt="" width="230" height="230">
+        <img src="{% static 'img/logo.png' %}" alt="" width="230" height="230">
         <span class="hoja hoja-1"></span>
         <span class="hoja hoja-2"></span>
         <span class="hoja hoja-3"></span>
@@ -39,7 +39,7 @@
 <section class="seccion">
     <h2 class="seccion-titulo">Aves representativas del municipio</h2>
     <p class="seccion-sub">
-        Nueve embajadoras del bosque andino, de la sabana y de los jardines tequendameños.
+        Las aves embajadoras del bosque andino, de la sabana y de los jardines tequendameños.
     </p>
 
     <div class="carrusel-envoltura">
@@ -68,23 +68,28 @@
     <p class="seccion-sub">Por qué nació BirdWatch y hacia dónde vamos.</p>
     <div class="vision-mision">
         <article class="tarjeta tarjeta-vision">
-            <span class="tarjeta-icono" aria-hidden="true">👁️</span>
+      
             <h3>Visión</h3>
             <p>
-                Que cada habitante y visitante de San Antonio del Tequendama conozca, valore
-                y proteja las aves de su territorio. Soñamos con un municipio que escucha su
-                bosque, guarda la memoria de sus especies en datos propios y educa a las
-                nuevas generaciones en el cuidado de la vida andina.
+                Consolidarnos para el año 2030 como la plataforma digital referente 
+                en educación ambiental y avistamiento de aves en Colombia, logrando 
+                alianzas estratégicas con los principales ecoparques, zoológicos y 
+                entidades ambientales del país. Buscamos transformar la manera en que
+                niños, jóvenes y familias interactúan con los ecosistemas, impulsando
+                 una cultura sostenible respaldada por un modelo de negocio escalable
+                  y autosostenible.
             </p>
         </article>
         <article class="tarjeta tarjeta-mision">
-            <span class="tarjeta-icono" aria-hidden="true">🌿</span>
+          
             <h3>Misión</h3>
             <p>
-                Facilitar el reconocimiento de las aves por su canto mediante la tecnología
-                BirdNET, conservar un registro comunitario de las detecciones en una base de
-                datos PostgreSQL y promover, junto a colegios, caminantes y familias, la
-                educación ambiental y la conservación de los bosques de niebla del Tequendama.
+                Brindar a los visitantes de ecoparques, zoológicos y entusiastas de la
+                 naturaleza una experiencia educativa interactiva, accesible e innovadora
+                mediante una aplicación móvil integrada con códigos QR. A través de material
+                didáctico, retos y herramientas de registro en tiempo real, promovemos la
+                observación responsable de las aves, la participación comunitaria y el aprendizaje
+                 dinámico, contribuyendo a la sensibilización y conservación de la biodiversidad local.
             </p>
         </article>
     </div>
@@ -95,7 +100,7 @@
     <p>Grábalo con BirdWatch y descúbrelo en segundos.</p>
     <a class="boton-ave"
        href="{% if user.is_authenticated %}{% url 'identificar' %}{% else %}{% url 'entrar' %}?siguiente=/identificar/{% endif %}">
-        <img src="{% static 'img/logo.svg' %}" alt="" width="40" height="40">
+        <img src="{% static 'img/logo.png' %}" alt="" width="40" height="40">
         <span>Probar ahora</span>
     </a>
 </section>

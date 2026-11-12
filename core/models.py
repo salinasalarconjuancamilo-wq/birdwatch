@@ -14,6 +14,7 @@ class Ave(models.Model):
         help_text="Ruta de la imagen dentro de los estáticos, p. ej. img/aves/condor-andino.jpg",
     )
     orden = models.PositiveSmallIntegerField("orden de presentación", default=0)
+    activo = models.BooleanField("mostrar en el carrusel", default=True)
 
     class Meta:
         verbose_name = "ave"
