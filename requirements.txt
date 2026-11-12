@@ -1,0 +1,4 @@
+Django>=5.2,<6
+psycopg[binary]>=3.2
+birdnet_analyzer[server]==2.4.0
+msvc-runtime>=14.40

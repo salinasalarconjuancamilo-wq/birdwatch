@@ -1,0 +1,21 @@
+{
+  "name": "BirdWatch · San Antonio del Tequendama",
+  "short_name": "BirdWatch",
+  "description": "Identifica las aves de San Antonio del Tequendama (Cundinamarca, Colombia) por su canto con BirdNET.",
+  "lang": "es-CO",
+  "dir": "ltr",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#d8f3dc",
+  "theme_color": "#1b4332",
+  "icons": [
+    {
+      "src": "/estaticos/img/logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

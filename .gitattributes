@@ -1,0 +1,13 @@
+# Normaliza saltos de linea en el repositorio
+* text=auto
+
+# Los .bat de Windows requieren CRLF para funcionar
+*.bat text eol=crlf
+*.svg text
+*.py text
+*.html text
+*.css text
+*.js text
+*.json text
+*.md text
+*.webmanifest text

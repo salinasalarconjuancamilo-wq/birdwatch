@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block titulo %}Inicio{% endblock %}
+
+{% block contenido %}
+<section class="portada">
+    <div class="portada-texto">
+        <p class="portada-etiqueta">San Antonio del Tequendama · Cundinamarca · Colombia</p>
+        <h1 class="portada-titulo">
+            Escucha el bosque de niebla<br>
+            <em>y descubre qué ave canta</em>
+        </h1>
+        <p class="portada-descripcion">
+            BirdWatch es el aplicativo del municipio para reconocer nuestras aves por su
+            canto: graba unos segundos con el micrófono y la inteligencia artificial de
+            <strong>BirdNET</strong> (Laboratorio de Ornitología de Cornell) te dirá qué
+            especie suena cerca de ti. En esta primera versión el identificador aprende
+            a reconocer al <strong>chinigüe (copetón)</strong>, nuestro ave insignia.
+        </p>
+        <a class="boton-ave"
+           href="{% if user.is_authenticated %}{% url 'identificar' %}{% else %}{% url 'entrar' %}?siguiente=/identificar/{% endif %}">
+            <img src="{% static 'img/logo.svg' %}" alt="" width="46" height="46">
+            <span>Identificar un ave por su canto</span>
+        </a>
+        <p class="portada-nota">Usa el micrófono · gratis · hecho para el colegio y la familia</p>
+    </div>
+    <div class="portada-arte" aria-hidden="true">
+        <img src="{% static 'img/logo.svg' %}" alt="" width="230" height="230">
+        <span class="hoja hoja-1"></span>
+        <span class="hoja hoja-2"></span>
+        <span class="hoja hoja-3"></span>
+        <span class="burbuja burbuja-1"></span>
+        <span class="burbuja burbuja-2"></span>
+        <span class="burbuja burbuja-3"></span>
+    </div>
+</section>
+
+<section class="seccion">
+    <h2 class="seccion-titulo">Aves representativas del municipio</h2>
+    <p class="seccion-sub">
+        Nueve embajadoras del bosque andino, de la sabana y de los jardines tequendameños.
+    </p>
+
+    <div class="carrusel-envoltura">
+        <div class="carrusel" id="carrusel" tabindex="0" aria-label="Carrusel de aves representativas">
+            {% for ave in aves %}
+            <article class="diapositiva">
+                <div class="diapositiva-imagen">
+                    <img src="{% static ave.imagen %}" alt="Foto de {{ ave.nombre_comun }}" loading="lazy" width="640" height="427">
+                </div>
+                <div class="diapositiva-texto">
+                    <h3>{{ ave.nombre_comun }}</h3>
+                    <p class="nombre-cientifico">{{ ave.nombre_cientifico }}</p>
+                    <p class="descripcion">{{ ave.descripcion }}</p>
+                </div>
+            </article>
+            {% endfor %}
+        </div>
+        <button class="flecha flecha-anterior" id="carrusel-anterior" type="button" aria-label="Ave anterior">&#10094;</button>
+        <button class="flecha flecha-siguiente" id="carrusel-siguiente" type="button" aria-label="Ave siguiente">&#10095;</button>
+    </div>
+    <div class="carrusel-puntos" id="carrusel-puntos" role="tablist" aria-label="Ir a un ave del carrusel"></div>
+</section>
+
+<section class="seccion seccion-vision" id="vision">
+    <h2 class="seccion-titulo">Nuestro proyecto</h2>
+    <p class="seccion-sub">Por qué nació BirdWatch y hacia dónde vamos.</p>
+    <div class="vision-mision">
+        <article class="tarjeta tarjeta-vision">
+            <span class="tarjeta-icono" aria-hidden="true">👁️</span>
+            <h3>Visión</h3>
+            <p>
+                Que cada habitante y visitante de San Antonio del Tequendama conozca, valore
+                y proteja las aves de su territorio. Soñamos con un municipio que escucha su
+                bosque, guarda la memoria de sus especies en datos propios y educa a las
+                nuevas generaciones en el cuidado de la vida andina.
+            </p>
+        </article>
+        <article class="tarjeta tarjeta-mision">
+            <span class="tarjeta-icono" aria-hidden="true">🌿</span>
+            <h3>Misión</h3>
+            <p>
+                Facilitar el reconocimiento de las aves por su canto mediante la tecnología
+                BirdNET, conservar un registro comunitario de las detecciones en una base de
+                datos PostgreSQL y promover, junto a colegios, caminantes y familias, la
+                educación ambiental y la conservación de los bosques de niebla del Tequendama.
+            </p>
+        </article>
+    </div>
+</section>
+
+<section class="llamado-final">
+    <h2>¿Ya oíste ese canto y no sabes qué ave es?</h2>
+    <p>Grábalo con BirdWatch y descúbrelo en segundos.</p>
+    <a class="boton-ave"
+       href="{% if user.is_authenticated %}{% url 'identificar' %}{% else %}{% url 'entrar' %}?siguiente=/identificar/{% endif %}">
+        <img src="{% static 'img/logo.svg' %}" alt="" width="40" height="40">
+        <span>Probar ahora</span>
+    </a>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'js/carrusel.js' %}"></script>
+{% endblock %}
