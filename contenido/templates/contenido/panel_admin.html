@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+
+{% block titulo %}Panel de contenido{% endblock %}
+
+{% block contenido %}
+<section class="cabecera-pagina">
+    <p class="portada-etiqueta">Administración</p>
+    <h1>Gestionar contenido</h1>
+    <p>
+        Aquí puedes agregar, editar y eliminar lugares del mapa, activar o desactivar secciones
+        y publicar contenido cuando esté listo. Los cambios se reflejan de inmediato en el sitio.
+    </p>
+</section>
+
+<section class="panel-admin">
+    <div class="panel">
+        <div class="carrusel-cabecera">
+            <h2>Lugares del mapa</h2>
+            <a class="boton-primario" href="{% url 'lugar_nuevo' %}">+ Agregar parque o lugar</a>
+        </div>
+        <table class="admin-tabla">
+            <thead>
+                <tr><th>Lugar</th><th>Ubicación</th><th>Mapa</th><th>Acciones</th></tr>
+            </thead>
+            <tbody>
+                {% for lugar in lugares %}
+                <tr>
+                    <td><strong>{{ lugar.nombre }}</strong><br><span class="ayuda">{{ lugar.get_tipo_display }}</span></td>
+                    <td>{{ lugar.ubicacion }}</td>
+                    <td>
+                        {% if lugar.tiene_coordenadas %}
+                            <span class="etiqueta">Con coordenadas</span>
+                        {% else %}
+                            <span class="etiqueta pendiente">Por definir</span>
+                        {% endif %}
+                        {% if lugar.activo %}<span class="etiqueta">Visible</span>{% else %}<span class="etiqueta pendiente">Oculta</span>{% endif %}
+                    </td>
+                    <td class="admin-acciones">
+                        <a class="boton-secundario" href="{% url 'lugar_editar' lugar.pk %}">Editar</a>
+                        <form method="post" action="{% url 'lugar_alternar' lugar.pk %}">
+                            {% csrf_token %}
+                            <button class="boton-secundario" type="submit">{% if lugar.activo %}Ocultar{% else %}Mostrar{% endif %}</button>
+                        </form>
+                        <form method="post" action="{% url 'lugar_eliminar' lugar.pk %}"
+                              onsubmit="return confirm('¿Eliminar «{{ lugar.nombre|escapejs }}»?');">
+                            {% csrf_token %}
+                            <button class="boton-peligro" type="submit">Eliminar</button>
+                        </form>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="4">No hay lugares registrados.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="panel">
+        <div class="carrusel-cabecera">
+            <h2>Secciones</h2>
+            <a class="boton-primario" href="{% url 'seccion_nueva' %}">+ Agregar sección</a>
+        </div>
+        <p class="ayuda">Las secciones desactivadas no se muestran en la portada ni en el menú.</p>
+        <table class="admin-tabla">
+            <thead>
+                <tr><th>Sección</th><th>Clave</th><th>Estado</th><th>Acciones</th></tr>
+            </thead>
+            <tbody>
+                {% for seccion in secciones %}
+                <tr>
+                    <td><strong>{{ seccion.nombre }}</strong></td>
+                    <td><code>{{ seccion.clave }}</code></td>
+                    <td>{% if seccion.activa %}<span class="etiqueta">Activa</span>{% else %}<span class="etiqueta pendiente">Inactiva</span>{% endif %}</td>
+                    <td class="admin-acciones">
+                        <a class="boton-secundario" href="{% url 'seccion_editar' seccion.pk %}">Editar</a>
+                        <form method="post" action="{% url 'seccion_alternar' seccion.pk %}">
+                            {% csrf_token %}
+                            <button class="boton-secundario" type="submit">{% if seccion.activa %}Desactivar{% else %}Activar{% endif %}</button>
+                        </form>
+                        <form method="post" action="{% url 'seccion_eliminar' seccion.pk %}"
+                              onsubmit="return confirm('¿Eliminar la sección «{{ seccion.nombre|escapejs }}»?');">
+                            {% csrf_token %}
+                            <button class="boton-peligro" type="submit">Eliminar</button>
+                        </form>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="4">No hay secciones registradas.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="panel">
+        <div class="carrusel-cabecera">
+            <h2>Noticias y contenido</h2>
+            <a class="boton-primario" href="{% url 'noticia_nueva' %}">+ Agregar contenido</a>
+        </div>
+        <table class="admin-tabla">
+            <thead>
+                <tr><th>Título</th><th>Fecha</th><th>Estado</th><th>Acciones</th></tr>
+            </thead>
+            <tbody>
+                {% for noticia in noticias %}
+                <tr>
+                    <td><strong>{{ noticia.titulo }}</strong></td>
+                    <td>{{ noticia.publicada_en|date:"d M Y" }}</td>
+                    <td>{% if noticia.publicada %}<span class="etiqueta">Publicada</span>{% else %}<span class="etiqueta pendiente">Borrador</span>{% endif %}</td>
+                    <td class="admin-acciones">
+                        <a class="boton-secundario" href="{% url 'noticia_editar' noticia.pk %}">Editar</a>
+                        <form method="post" action="{% url 'noticia_alternar' noticia.pk %}">
+                            {% csrf_token %}
+                            <button class="boton-secundario" type="submit">{% if noticia.publicada %}Despublicar{% else %}Publicar{% endif %}</button>
+                        </form>
+                        <form method="post" action="{% url 'noticia_eliminar' noticia.pk %}"
+                              onsubmit="return confirm('¿Eliminar la noticia «{{ noticia.titulo|escapejs }}»?');">
+                            {% csrf_token %}
+                            <button class="boton-peligro" type="submit">Eliminar</button>
+                        </form>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="4">Aún no hay noticias. La sección «Noticias y novedades» permanece desactivada.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

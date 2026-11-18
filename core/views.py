@@ -4,20 +4,29 @@ from pathlib import Path
 
 from django.conf import settings
 from django.contrib import messages
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import authenticate, get_user_model, login, logout
 from django.contrib.auth.decorators import login_required
+from django.core.mail import send_mail
 from django.http import FileResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+from django.utils import timezone
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.decorators.http import require_POST
 
 from aves.estadisticas import resumen_estadisticas
-from contenido.models import Noticia
+from contenido.models import Noticia, secciones_activas
 
 from .birdnet import CONFIANZA_MINIMA, analizar_audio, comprobar_servicio
-from .forms import AveForm
-from .models import Ave, Deteccion
+from .forms import (
+    AveForm,
+    IngresoForm,
+    NuevaClaveForm,
+    RecuperarForm,
+    RegistroForm,
+    VerificarCodigoForm,
+)
+from .models import Ave, CodigoRecuperacion, Deteccion
 
 
 def solo_superadmin(vista):
@@ -38,12 +47,14 @@ def solo_superadmin(vista):
 
 
 def inicio(request):
-    """Portada: carrusel de aves, noticias, destacados, visión y misión."""
+    """Portada: carrusel, visión y misión; las demás secciones son opcionales."""
+    activas = secciones_activas()
     contexto = {
         "aves": Ave.objects.filter(activo=True),
-        "noticias": Noticia.objects.filter(publicada=True)[:3],
+        "noticias": Noticia.objects.filter(publicada=True)[:3] if "noticias" in activas else [],
     }
-    contexto.update(resumen_estadisticas())
+    if "estadisticas" in activas:
+        contexto.update(resumen_estadisticas())
     return render(request, "inicio.html", contexto)
 
 
@@ -156,27 +167,154 @@ def carrusel_mover(request, pk):
     return redirect("carrusel_admin")
 
 
+def _siguiente_seguro(request, form):
+    destino = (form.cleaned_data.get("siguiente") or request.GET.get("siguiente") or "").strip()
+    return destino if destino.startswith("/") and not destino.startswith("//") else ""
+
+
 def entrar(request):
-    """Ingreso de usuarios (superusuario inicial: user / 1234)."""
+    """Ingreso con correo electrónico y contraseña."""
     if request.user.is_authenticated:
         return redirect("identificar")
 
-    error = None
+    inicial = {"siguiente": request.GET.get("siguiente", "")}
     if request.method == "POST":
-        usuario = authenticate(
-            request,
-            username=request.POST.get("usuario", "").strip(),
-            password=request.POST.get("contrasena", ""),
+        datos = request.POST.copy()
+        # Compatibilidad con scripts y usuarios antiguos que enviaban «usuario».
+        if not datos.get("correo") and datos.get("usuario"):
+            datos["correo"] = datos["usuario"]
+        form = IngresoForm(datos)
+        if form.is_valid():
+            identificador = form.cleaned_data["correo"]
+            usuarios = get_user_model().objects
+            if "@" in identificador:
+                usuario = usuarios.filter(email__iexact=identificador).first() or usuarios.filter(
+                    username__iexact=identificador
+                ).first()
+            else:
+                usuario = usuarios.filter(username__iexact=identificador).first()
+            autenticado = None
+            if usuario is not None and usuario.is_active:
+                autenticado = authenticate(
+                    request, username=usuario.username, password=form.cleaned_data["contrasena"]
+                )
+            if autenticado is not None:
+                login(request, autenticado)
+                messages.success(request, f"¡Hola de nuevo, {autenticado.first_name or autenticado.username}!")
+                destino = _siguiente_seguro(request, form)
+                return redirect(destino or "inicio")
+            form.add_error(None, "Correo electrónico o contraseña incorrectos.")
+    else:
+        form = IngresoForm(initial=inicial)
+    return render(request, "login.html", {"form": form})
+
+
+def registrarse(request):
+    """Alta pública de usuarios: nunca crea privilegios de administración."""
+    if request.user.is_authenticated:
+        return redirect("inicio")
+    form = RegistroForm(request.POST or None)
+    if request.method == "POST" and form.is_valid():
+        datos = form.cleaned_data
+        usuario = get_user_model().objects.create_user(
+            username=datos["correo"],
+            email=datos["correo"],
+            first_name=datos["nombre"].strip(),
+            password=datos["contrasena1"],
         )
-        if usuario is not None:
-            login(request, usuario)
-            messages.success(request, f"¡Hola de nuevo, {usuario.username}!")
-            siguiente = request.POST.get("siguiente") or request.GET.get("siguiente")
-            if siguiente and siguiente.startswith("/"):
-                return redirect(siguiente)
-            return redirect("inicio")
-        error = "Usuario o contraseña incorrectos."
-    return render(request, "login.html", {"error": error})
+        login(request, usuario)
+        messages.success(request, "¡Bienvenido a BirdWatch! Tu cuenta ya está lista.")
+        return redirect("inicio")
+    return render(request, "registrarse.html", {"form": form})
+
+
+def recuperar(request):
+    """Envía un código de 6 dígitos al correo registrado."""
+    form = RecuperarForm(request.POST or None)
+    if request.method == "POST" and form.is_valid():
+        correo = form.cleaned_data["correo"].strip()
+        enviados = 0
+        for usuario in get_user_model().objects.filter(email__iexact=correo):
+            registro = CodigoRecuperacion.crear(usuario)
+            minutos = getattr(settings, "CODIGO_RECUPERACION_MINUTOS", 15)
+            try:
+                send_mail(
+                    "Tu código de recuperación de BirdWatch",
+                    (
+                        f"Hola {usuario.first_name or usuario.username}:\n\n"
+                        f"Tu código de verificación es {registro.codigo}.\n"
+                        f"Válido durante {minutos} minutos.\n\n"
+                        "Si no solicitaste este cambio, ignora este mensaje.\n\n"
+                        "Equipo BirdWatch"
+                    ),
+                    settings.DEFAULT_FROM_EMAIL,
+                    [usuario.email],
+                    fail_silently=False,
+                )
+                enviados += 1
+            except Exception:
+                messages.error(
+                    request,
+                    "No se pudo enviar el correo. Revisa la configuración SMTP e inténtalo de nuevo.",
+                )
+        request.session["recuperar_correo"] = correo
+        if enviados:
+            messages.info(request, "Enviamos un código de verificación a tu correo electrónico.")
+        return redirect("recuperar_verificar")
+    return render(request, "recuperar.html", {"form": form})
+
+
+def recuperar_verificar(request):
+    """Comprueba el código recibido y habilita el cambio de contraseña."""
+    correo_inicial = request.session.get("recuperar_correo", "")
+    form = VerificarCodigoForm(
+        request.POST or None,
+        initial={"correo": correo_inicial} if correo_inicial else None,
+    )
+    if request.method == "POST" and form.is_valid():
+        correo = form.cleaned_data["correo"].strip()
+        codigo = form.cleaned_data["codigo"]
+        registro_valido = None
+        for usuario in get_user_model().objects.filter(email__iexact=correo):
+            candidato = (
+                CodigoRecuperacion.objects.filter(usuario=usuario, codigo=codigo)
+                .order_by("-creado_en")
+                .first()
+            )
+            if candidato and candidato.vigente():
+                registro_valido = candidato
+                break
+        if registro_valido is None:
+            form.add_error("codigo", "El código no es válido o ya venció. Solicita uno nuevo.")
+        else:
+            request.session["recuperar_usuario_id"] = registro_valido.usuario_id
+            request.session["recuperar_codigo_id"] = registro_valido.pk
+            return redirect("recuperar_nueva_clave")
+    return render(request, "recuperar_verificar.html", {"form": form})
+
+
+def recuperar_nueva_clave(request):
+    """Guarda la nueva contraseña y cancela el código utilizado."""
+    usuario_id = request.session.get("recuperar_usuario_id")
+    codigo_id = request.session.get("recuperar_codigo_id")
+    registro = CodigoRecuperacion.objects.filter(pk=codigo_id, usuario_id=usuario_id).first()
+    if registro is None or not registro.vigente():
+        messages.error(request, "El código venció o no es válido. Solicita uno nuevo.")
+        return redirect("recuperar")
+
+    usuario = registro.usuario
+    form = NuevaClaveForm(request.POST or None)
+    form.usuario = usuario
+    if request.method == "POST" and form.is_valid():
+        usuario.set_password(form.cleaned_data["contrasena1"])
+        usuario.save(update_fields=["password"])
+        registro.usado_en = timezone.now()
+        registro.save(update_fields=["usado_en"])
+        for clave in ("recuperar_correo", "recuperar_usuario_id", "recuperar_codigo_id"):
+            request.session.pop(clave, None)
+        messages.success(request, "Contraseña actualizada. Ya puedes iniciar sesión.")
+        return redirect("entrar")
+    return render(request, "recuperar_nueva_clave.html", {"form": form, "usuario": usuario})
 
 
 def salir(request):

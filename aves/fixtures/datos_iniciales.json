@@ -67,6 +67,7 @@
       "fecha": "2026-09-20",
       "lugar": "Bosque altoandino",
       "cantidad": 2,
+      "creado_en": "2026-11-01T12:00:00Z",
       "notas": "Vuelo alto cerca del canope del paramo."
     }
   },
@@ -78,6 +79,7 @@
       "fecha": "2026-10-05",
       "lugar": "Parque del barrio",
       "cantidad": 1,
+      "creado_en": "2026-11-01T12:01:00Z",
       "notas": "Cantando en la manana sobre un arbol de mango."
     }
   },
@@ -89,6 +91,7 @@
       "fecha": "2026-10-12",
       "lugar": "Laguna del parque",
       "cantidad": 6,
+      "creado_en": "2026-11-01T12:02:00Z",
       "notas": "Grupo alimentandose junto al ganado."
     }
   },
@@ -100,6 +103,7 @@
       "fecha": "2026-10-18",
       "lugar": "Campus SENA",
       "cantidad": 4,
+      "creado_en": "2026-11-01T12:03:00Z",
       "notas": "Volando en circulos sobre los edificios."
     }
   },
@@ -111,6 +115,7 @@
       "fecha": "2026-11-02",
       "lugar": "Sendero ecologico",
       "cantidad": 2,
+      "creado_en": "2026-11-01T12:04:00Z",
       "notas": "Muy activas moviendo la cola."
     }
   }

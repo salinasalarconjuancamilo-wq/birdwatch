@@ -8,9 +8,11 @@ una **comunidad de observación ciudadana**.
 
 - Identificación con **BirdNET** (Laboratorio de Ornitología de Cornell).
 - Registro de **avistamientos** con ubicación, especie, foto y notas.
-- **Mapa interactivo** con **Leaflet + OpenStreetMap** (gratis, ligero, sin APIs de pago).
-- **Noticias**, **estadísticas**, **centro de ayuda**, **contacto** y **código de conducta**.
-- Aliado: **6:B Colombia — red de observadores**.
+- **Mapa interactivo** con **Leaflet + OpenStreetMap** (gratis, ligero, sin APIs de pago) que muestra
+  únicamente **Parque Nacional Natural Chicaque**, **Zoológico Santa Cruz** y **Reserva Natural Kendama**.
+- **Centro de ayuda**, **contacto** y **código de conducta**. Estadísticas, noticias y la sección del
+  aliado permanecen **desactivadas** hasta que haya información real.
+- El convenio con **6:B Colombia — red de observadores** todavía no existe; no se muestra públicamente.
 
 ---
 
@@ -18,11 +20,13 @@ una **comunidad de observación ciudadana**.
 
 | Rol | Qué puede hacer |
 |-----|-----------------|
-| **Acceso público** | Ver la portada, noticias, avistamientos aprobados, mapa, estadísticas, ayuda y conducta. No requiere login. |
-| **Usuario** | Todo lo anterior + registrar avistamientos, comentar y validar información. |
-| **Administrador** (`is_staff`/`is_superuser`) | Todo lo anterior + aprobar contenido, controlar registros, gestionar usuarios y noticias desde `/admin/`. |
+| **Acceso público** | Ver la portada informativa, el mapa de lugares, los avistamientos aprobados, la ayuda y la conducta. No requiere login. Las secciones desactivadas no son públicas. |
+| **Usuario** | Todo lo anterior + registrar avistamientos, comentar y validar información. Puede crear su cuenta en `/registrarse/`. |
+| **Administrador** (`is_staff`/`is_superuser`) | Todo lo anterior + aprobar contenido, controlar registros y gestionar lugares, secciones y noticias desde `/contenido/admin/` y `/admin/`. |
 
-El usuario inicial es `user` / `1234` (superadministrador).
+El acceso se hace con **correo electrónico y contraseña**. Después de sembrar, el superadministrador
+usa el correo `user@birdwatch.local`; la clave inicial se toma de `BIRDWATCH_ADMIN_PASSWORD`
+(valor por defecto solo para el entorno local).
 
 ---
 
@@ -30,20 +34,23 @@ El usuario inicial es `user` / `1234` (superadministrador).
 
 | Módulo | Ruta | Descripción |
 |--------|------|-------------|
-| Portada | `/` | Carrusel de aves, destacados en vivo y últimas noticias. |
+| Portada | `/` | Portada informativa pública, carrusel de aves, visión y misión. Las demás secciones aparecen solo si están activas. |
 | Portada alterna | `/portada/` | Vista histórica de la app `aves` (se conserva por compatibilidad). |
 | Identificador | `/identificar/` | Micrófono → WAV → BirdNET → especies con % de confianza. |
 | Avistamientos | `/avistamientos/` | Listado con filtros por zona, especie y texto. |
 | Registrar | `/avistamientos/nuevo/` | Formulario sencillo con especie, fecha, lugar, zona, coordenadas, foto y notas. |
 | Ficha | `/avistamientos/<id>/` | Detalle, comentarios y validaciones. |
 | Por aprobar | `/avistamientos/pendientes/` | Cola de revisión del administrador. |
-| Mapa | `/mapa/` | Leaflet + OpenStreetMap con los avistamientos georreferenciados. |
-| Datos del mapa | `/mapa/datos/` | JSON con los marcadores (útil para integraciones). |
-| Estadísticas | `/estadisticas/` | Especie más avistada, Top 10, más observadas, especies por zona, casos especiales e info del parque. |
-| Noticias | `/noticias/` | Novedades dinámicas del proyecto y del parque. |
+| Mapa | `/mapa/` | Leaflet + OpenStreetMap solo con los 3 lugares de observación. |
+| Datos del mapa | `/mapa/datos/` | JSON con los lugares (útil para integraciones). |
+| Estadísticas | `/estadisticas/` | Desactivada por defecto; el administrador puede activarla desde el panel de contenido. |
+| Noticias | `/noticias/` | Desactivada por defecto; no hay contenido publicado aún. |
 | Ayuda | `/ayuda/` | Preguntas frecuentes + guía para identificar aves. |
 | Contacto | `/contacto/` | Formulario de mensajes; los guarda en la base de datos. |
 | Conducta | `/conducta/` | Normas para respetar a las aves y su hábitat. |
+| Registrarse | `/registrarse/` | Alta pública de usuarios con correo y contraseña. |
+| Recuperar clave | `/recuperar/` | Envía un código de 6 dígitos por correo y permite crear una nueva clave. |
+| Panel de contenido | `/contenido/admin/` | Agregar/editar/eliminar lugares, secciones y noticias; activar o desactivar secciones. |
 | Carrusel | `/carrusel/` | Panel del superadministrador para editar la portada. |
 | Admin | `/admin/` | Usuarios, contenido y registros. |
 
@@ -77,8 +84,9 @@ El usuario inicial es `user` / `1234` (superadministrador).
   .venv\Scripts\python.exe manage.py sembrar_comunidad
   ```
 
-  - `sembrar`: superusuario (`user` / `1234`) y 9 aves del carrusel.
-  - `sembrar_comunidad`: especies, avistamientos con coordenadas, 4 noticias y 6 preguntas frecuentes. Es **idempotente**.
+  - `sembrar`: superusuario, usuario de prueba y 9 aves del carrusel (acceso por correo).
+  - `sembrar_comunidad`: especies, avistamientos, los 3 lugares del mapa, 5 secciones
+    (solo «mapa» y «ayuda» activas), noticias y preguntas frecuentes. Es **idempotente**.
 
 ---
 
@@ -100,9 +108,26 @@ puerto 8080. La primera vez tarda unos 15 segundos en cargar el modelo (224 MB).
 > .venv\Scripts\python.exe manage.py runserver 0.0.0.0:3000 --noreload
 > ```
 
-### 4.2 Entrar
+### 4.2 Entrar, registrarse y recuperar la clave
 
-Usuario `user` · contraseña `1234`.
+- **Iniciar sesión** (`/entrar/`): campos **Correo electrónico** y **Contraseña**.
+- **¿No tienes cuenta?** → `/registrarse/` crea un Usuario (no administrador).
+- **¿Ya tienes cuenta?** → `/entrar/` desde el formulario de registro.
+- **¿Olvidaste tu contraseña?** → `/recuperar/` envía un código de 6 dígitos al correo,
+  se valida en `/recuperar/verificar/` y se guarda la nueva clave en `/recuperar/nueva-clave/`.
+
+En desarrollo el correo se imprime en la consola de Django (`EMAIL_BACKEND=console`). Para enviarlo
+de verdad configura estas variables antes de iniciar:
+
+```
+set EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend
+set EMAIL_HOST=smtp.tuservidor.com
+set EMAIL_PORT=587
+set EMAIL_HOST_USER=tu-usuario
+set EMAIL_HOST_PASSWORD=tu-clave
+set EMAIL_FROM=BirdWatch <no-reply@birdwatch.local>
+set CODIGO_RECUPERACION_MINUTOS=15
+```
 
 ### 4.3 Identificar un ave
 
@@ -117,7 +142,8 @@ BirdNET descarta voces humanas, motores e insectos y exige **≥ 20 % de confian
 
 1. Entra a **Avistamientos** → **Registrar avistamiento**.
 2. Elige la especie, la fecha, el lugar y la zona del parque.
-3. Añade coordenadas (opcional) para que aparezca en el **mapa**, y una foto.
+3. Añade coordenadas (opcional) y una foto. El **mapa público ya no muestra avistamientos**:
+   solo los lugares de observación gestionados por el administrador.
 4. Un administrador aprueba el registro; después puede comentarse y validarse.
 
 ### 4.5 Detener
@@ -139,30 +165,32 @@ Doble clic en **`DETENER-BIRDWATCH.bat`** o cierra las ventanas "BirdNET" y "Dja
 
 ```
 birdwatch/                 Configuración (settings, urls, context processors)
-  settings.py              Apps, BD (PostgreSQL/SQLite), idioma, MEDIA, redes
+  settings.py              Apps, BD, correo/SMTP, idioma, MEDIA, redes
   urls.py                  Todas las rutas del sitio
-  context_processors.py    Frase, aliado y redes en todas las plantillas
-core/                      Identificación por canto (BirdNET) y carrusel
+  context_processors.py    Frase, redes y secciones activas en las plantillas
+core/                      Identificación por canto, acceso y carrusel
   birdnet.py               Cliente BirdNET, umbral 20 %, filtros anti-ruido
   traducciones.py          Inglés → español
-  views.py / urls.py       Portada, login, identificar, analizar, carrusel
+  models.py                Ave, Deteccion y CodigoRecuperacion
+  forms.py / views.py      Login, registro, recuperación, identificar, analizar
+  urls.py                  Rutas de acceso y del carrusel
   permisos.py              Decoradores de roles (Usuario / Administrador)
   data/aves.json           Aves del carrusel
 aves/                      Catálogo y comunidad de avistamientos
   models.py                Ave, Avistamiento, Comentario, Validación
   forms.py / views.py / urls.py / admin.py
-  estadisticas.py          Cálculo centralizado de destacados y marcadores
+  estadisticas.py          Cálculo centralizado de destacados (el mapa ya no los usa)
   management/commands/sembrar_comunidad.py
   templates/aves/          Listado, formulario, ficha, mapa, estadísticas…
-contenido/                 Contenido dinámico
-  models.py                Noticia, PreguntaFrecuente, MensajeContacto
+contenido/                 Contenido dinámico y panel de administración
+  models.py                Noticia, PreguntaFrecuente, MensajeContacto, LugarObservacion, Seccion
   views.py / urls.py / forms.py / admin.py
-  templates/contenido/     Noticias, ayuda, contacto, conducta
-plantillas/                base.html, inicio.html, login, identificar, carrusel
+  templates/contenido/     Noticias, ayuda, contacto, conducta, panel_admin
+plantillas/                base, inicio, login, registro, recuperación, identificar, carrusel
 estaticos/
   css/estilos.css          Diseño principal
   css/comunidad.css        Estilos de los módulos de comunidad
-  js/mapa.js               Marcadores Leaflet desde JSON
+  js/mapa.js               Marcadores de lugares Leaflet desde JSON
   js/identificar.js        Micrófono y envío de audio
   js/carrusel.js           Carrusel de la portada
   img/logo.png             Logo redondo
@@ -182,9 +210,20 @@ No hay que pagar nada ni registrar API keys:
 - JS: `https://unpkg.com/leaflet@1.9.4/dist/leaflet.js`
 - Teselas: `https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png`
 
-Los marcadores se generan en `aves/estadisticas.py::datos_mapa()` y se inyectan
-en la plantilla con `json_script`. Un avistamiento aparece en el mapa solo si está
-**aprobado** y tiene **latitud y longitud**. Los casos especiales se marcan con ★.
+Los lugares se gestionan en `contenido/models.py::LugarObservacion` y se inyectan en la
+plantilla con `json_script`. El administrador puede agregar, editar, eliminar, ocultar y
+dar coordenadas a cada lugar desde `/contenido/admin/`.
+
+Los **únicos** lugares sembrados son:
+
+| Lugar | Ubicación | Coordenadas |
+|-------|-----------|-------------|
+| Parque Nacional Natural Chicaque | Soacha, Cundinamarca | 4.606944, -74.302778 |
+| Zoológico Santa Cruz | San Andrés de Antonio | 4.583569, -74.332948 |
+| Reserva Natural Kendama | Ubicación por definir | **sin coordenadas** (no se inventan) |
+
+El mapa **ya no muestra avistamientos de aves**. Kendama se lista como «Ubicación por definir»
+hasta que se confirme oficialmente. No se inventan parques adicionales.
 
 ---
 

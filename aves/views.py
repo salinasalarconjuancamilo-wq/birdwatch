@@ -1,13 +1,15 @@
 """Vistas del catálogo, los avistamientos, el mapa y las estadísticas."""
 from django.contrib import messages
 from django.db.models import Q
-from django.http import JsonResponse
+from django.http import Http404, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
+from contenido.models import LugarObservacion, secciones_activas
+
 from core.permisos import es_administrador, solo_administrador, solo_usuario
 
-from .estadisticas import datos_mapa, resumen_estadisticas
+from .estadisticas import resumen_estadisticas
 from .forms import AvistamientoForm, ComentarioForm
 from .models import Avistamiento, Ave, Validacion, ZONAS_PARQUE
 
@@ -204,25 +206,34 @@ def eliminar(request, pk):
     return redirect(_destino_seguro(request, "avistamientos"))
 
 
+def _lugares_mapa():
+    """Lugares activos; los que no tienen coordenadas se listan aparte."""
+    lugares = LugarObservacion.objects.filter(activo=True)
+    return [lugar.datos_mapa() for lugar in lugares]
+
+
 def mapa(request):
-    """Mapa interactivo Leaflet + OpenStreetMap (sin APIs de pago)."""
+    """Mapa de lugares para observar aves (Leaflet + OpenStreetMap)."""
+    lugares = _lugares_mapa()
     return render(
         request,
         "aves/mapa.html",
         {
-            "marcadores": datos_mapa(),
-            "zonas": ZONAS_PARQUE,
+            "lugares": lugares,
+            "con_coordenadas": [l for l in lugares if l["latitud"] is not None],
         },
     )
 
 
-def avistamientos_json(request):
-    """Datos de los marcadores para el mapa (endpoint JSON público)."""
-    return JsonResponse({"avistamientos": datos_mapa()}, safe=False)
+def lugares_json(request):
+    """JSON público con los lugares del mapa (sin avistamientos)."""
+    return JsonResponse({"lugares": _lugares_mapa()}, safe=False)
 
 
 def estadisticas(request):
     """Panel de estadísticas y destacados de la comunidad."""
+    if "estadisticas" not in secciones_activas() and not es_administrador(request.user):
+        raise Http404("Esta sección todavía no está disponible.")
     contexto = resumen_estadisticas()
     contexto["zonas"] = ZONAS_PARQUE
     return render(request, "aves/estadisticas.html", contexto)

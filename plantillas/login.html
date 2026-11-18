@@ -1,23 +1,26 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block titulo %}Entrar{% endblock %}
+{% block titulo %}Iniciar sesión{% endblock %}
 
 {% block contenido %}
 <section class="seccion-login">
     <div class="tarjeta-login">
         <img class="login-logo" src="{% static 'img/logo.png' %}" alt="Logotipo de BirdWatch" width="88" height="88">
-        <h1 class="login-titulo">Entrar a BirdWatch</h1>
-        <p class="login-sub">Identifica las aves de San Antonio del Tequendama por su canto.</p>
+        <h1 class="login-titulo">Iniciar sesión</h1>
+        <p class="login-sub">Ingresa con tu correo electrónico para registrar avistamientos y usar el identificador de aves.</p>
 
-        {% if error %}<p class="login-error" role="alert">{{ error }}</p>{% endif %}
+        {% if form.non_field_errors %}
+            {% for error in form.non_field_errors %}<p class="login-error" role="alert">{{ error }}</p>{% endfor %}
+        {% endif %}
 
-        <form method="post" action="{% url 'entrar' %}" class="formulario-login" id="formulario-login">
+        <form method="post" action="{% url 'entrar' %}" class="formulario-login" id="formulario-login" novalidate>
             {% csrf_token %}
-            <input type="hidden" name="siguiente" value="{{ request.GET.siguiente|default:'' }}">
+            {{ form.siguiente }}
             <div class="campo">
-                <label class="campo-etiqueta" for="id-usuario">Usuario</label>
-                <input type="text" name="usuario" id="id-usuario" autocomplete="username" required>
+                <label class="campo-etiqueta" for="id-correo">Correo electrónico</label>
+                <input type="email" name="correo" id="id-correo" autocomplete="email" placeholder="tu@correo.com" required>
+                {% for error in form.correo.errors %}<p class="campo-error">{{ error }}</p>{% endfor %}
             </div>
             <div class="campo">
                 <label class="campo-etiqueta" for="id-contrasena">Contraseña</label>
@@ -25,14 +28,13 @@
                     <input type="password" name="contrasena" id="id-contrasena" autocomplete="current-password" required>
                     <button type="button" class="mostrar-clave" id="mostrar-clave" aria-label="Mostrar u ocultar la contraseña" aria-pressed="false">👁</button>
                 </span>
+                {% for error in form.contrasena.errors %}<p class="campo-error">{{ error }}</p>{% endfor %}
             </div>
+            <p class="login-olvidaste"><a href="{% url 'recuperar' %}">¿Olvidaste tu contraseña?</a></p>
             <button type="submit" class="boton-entrar">Entrar</button>
         </form>
 
-        <p class="login-ayuda">
-            Por el momento el acceso es solo del administrador:<br>
-            usuario <code>user</code> · contraseña <code>1234</code>
-        </p>
+        <p class="login-registro">¿No tienes cuenta? <a href="{% url 'registrarse' %}">Registrarse</a></p>
         <a class="login-volver" href="{% url 'inicio' %}">&#8592; Volver al inicio</a>
     </div>
 </section>

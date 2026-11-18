@@ -1,8 +1,12 @@
-"""Formularios del panel de administración del carrusel."""
+"""Formularios del carrusel y del acceso a BirdWatch."""
 from pathlib import Path
 
 from django import forms
 from django.conf import settings
+from django.contrib.auth import get_user_model
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError
+from django.core.validators import validate_email
 from django.utils.text import slugify
 
 from .models import Ave
@@ -108,3 +112,124 @@ class AveForm(forms.ModelForm):
         if commit:
             ave.save()
         return ave
+
+
+# ------------------------------------------------------------------- Acceso
+
+
+class IngresoForm(forms.Form):
+    """Ingreso con correo electrónico (admite el usuario antiguo por compatibilidad)."""
+
+    correo = forms.CharField(
+        label="Correo electrónico",
+        widget=forms.EmailInput(attrs={"placeholder": "tu@correo.com", "autocomplete": "email"}),
+    )
+    contrasena = forms.CharField(
+        label="Contraseña",
+        widget=forms.PasswordInput(attrs={"autocomplete": "current-password"}),
+    )
+    siguiente = forms.CharField(required=False, widget=forms.HiddenInput())
+
+    def clean_correo(self):
+        valor = self.cleaned_data["correo"].strip()
+        if "@" in valor:
+            try:
+                validate_email(valor)
+            except ValidationError:
+                raise ValidationError("Escribe un correo electrónico válido.")
+        return valor
+
+
+class RegistroForm(forms.Form):
+    """Creación de una cuenta de Usuario (nunca administrador)."""
+
+    nombre = forms.CharField(label="Nombre", max_length=150, required=False)
+    correo = forms.EmailField(
+        label="Correo electrónico",
+        widget=forms.EmailInput(attrs={"placeholder": "tu@correo.com", "autocomplete": "email"}),
+    )
+    contrasena1 = forms.CharField(
+        label="Contraseña",
+        widget=forms.PasswordInput(attrs={"autocomplete": "new-password"}),
+    )
+    contrasena2 = forms.CharField(
+        label="Confirmar contraseña",
+        widget=forms.PasswordInput(attrs={"autocomplete": "new-password"}),
+    )
+
+    def clean_correo(self):
+        correo = self.cleaned_data["correo"].strip().lower()
+        usuarios = get_user_model().objects
+        if usuarios.filter(email__iexact=correo).exists() or usuarios.filter(username__iexact=correo).exists():
+            raise ValidationError("Ya existe una cuenta con ese correo electrónico. Inicia sesión.")
+        if len(correo) > 150:
+            raise ValidationError("El correo electrónico es demasiado largo.")
+        return correo
+
+    def clean(self):
+        datos = super().clean()
+        clave = datos.get("contrasena1")
+        if clave and clave != datos.get("contrasena2"):
+            self.add_error("contrasena2", "Las contraseñas no coinciden.")
+        if clave:
+            candidato = get_user_model()(
+                username=datos.get("correo", ""), email=datos.get("correo", ""),
+                first_name=datos.get("nombre", ""),
+            )
+            try:
+                validate_password(clave, user=candidato)
+            except ValidationError as errores:
+                self.add_error("contrasena1", errores.messages[0])
+        return datos
+
+
+class RecuperarForm(forms.Form):
+    """Solicita el código de verificación para un correo registrado."""
+
+    correo = forms.EmailField(
+        label="Correo electrónico",
+        widget=forms.EmailInput(attrs={"placeholder": "tu@correo.com", "autocomplete": "email"}),
+    )
+
+
+class VerificarCodigoForm(forms.Form):
+    """Valida el código de 6 dígitos enviado al correo."""
+
+    correo = forms.EmailField(label="Correo electrónico")
+    codigo = forms.CharField(
+        label="Código de verificación",
+        min_length=6,
+        max_length=6,
+        widget=forms.TextInput(attrs={"placeholder": "000000", "inputmode": "numeric"}),
+    )
+
+    def clean_codigo(self):
+        codigo = self.cleaned_data["codigo"].strip()
+        if not codigo.isdigit():
+            raise ValidationError("El código debe tener 6 dígitos.")
+        return codigo
+
+
+class NuevaClaveForm(forms.Form):
+    """Establece la nueva contraseña tras validar el código."""
+
+    contrasena1 = forms.CharField(
+        label="Nueva contraseña", widget=forms.PasswordInput(attrs={"autocomplete": "new-password"})
+    )
+    contrasena2 = forms.CharField(
+        label="Confirmar nueva contraseña",
+        widget=forms.PasswordInput(attrs={"autocomplete": "new-password"}),
+    )
+
+    def clean(self):
+        datos = super().clean()
+        clave = datos.get("contrasena1")
+        if clave and clave != datos.get("contrasena2"):
+            self.add_error("contrasena2", "Las contraseñas no coinciden.")
+        if clave:
+            usuario = getattr(self, "usuario", None)
+            try:
+                validate_password(clave, user=usuario)
+            except ValidationError as errores:
+                self.add_error("contrasena1", errores.messages[0])
+        return datos

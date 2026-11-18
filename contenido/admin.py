@@ -1,6 +1,12 @@
 from django.contrib import admin
 
-from .models import MensajeContacto, Noticia, PreguntaFrecuente
+from .models import (
+    LugarObservacion,
+    MensajeContacto,
+    Noticia,
+    PreguntaFrecuente,
+    Seccion,
+)
 
 
 @admin.register(Noticia)
@@ -26,3 +32,19 @@ class MensajeContactoAdmin(admin.ModelAdmin):
     list_filter = ("respondido",)
     search_fields = ("nombre", "correo", "asunto")
     readonly_fields = ("nombre", "correo", "asunto", "mensaje", "creado_en")
+
+
+@admin.register(LugarObservacion)
+class LugarObservacionAdmin(admin.ModelAdmin):
+    list_display = ("nombre", "tipo", "ubicacion", "activo", "orden")
+    list_editable = ("activo", "orden")
+    list_filter = ("tipo", "activo")
+    search_fields = ("nombre", "ubicacion", "descripcion")
+
+
+@admin.register(Seccion)
+class SeccionAdmin(admin.ModelAdmin):
+    list_display = ("nombre", "clave", "activa")
+    list_editable = ("activa",)
+    list_filter = ("activa",)
+    search_fields = ("nombre", "clave")

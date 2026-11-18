@@ -137,9 +137,25 @@ STATIC_ROOT = BASE_DIR / "estaticos-compilados"
 MEDIA_URL = "/medios/"
 MEDIA_ROOT = BASE_DIR / "medios"
 
+# ------------------------------------------------------------------ Correo electrónico
+# Por defecto los mensajes se imprimen en la consola (desarrollo). Para envío real,
+# define EMAIL_HOST, EMAIL_HOST_USER, EMAIL_HOST_PASSWORD y EMAIL_FROM.
+EMAIL_BACKEND = os.environ.get(
+    "EMAIL_BACKEND", "django.core.mail.backends.console.EmailBackend"
+)
+EMAIL_HOST = os.environ.get("EMAIL_HOST", "")
+EMAIL_PORT = int(os.environ.get("EMAIL_PORT", "587"))
+EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", "")
+EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "")
+EMAIL_USE_TLS = os.environ.get("EMAIL_USE_TLS", "1") == "1"
+DEFAULT_FROM_EMAIL = os.environ.get("EMAIL_FROM", "BirdWatch <no-reply@birdwatch.local>")
+CODIGO_RECUPERACION_MINUTOS = int(os.environ.get("CODIGO_RECUPERACION_MINUTOS", "15"))
+
 # ------------------------------------------------------------------ Identidad del sitio
 FRASE_INSPIRADORA = "Cada ave cuenta, cada observación importa"
-ALIADO = "6:B Colombia — red de observadores"
+# El convenio con la red de observadores aún no existe: la sección se gestiona
+# desde el panel de contenido y permanece desactivada por defecto.
+ALIADO = ""
 NOMBRE_PARQUE = "Parque Ecológico San Antonio del Tequendama"
 
 # Enlaces directos a las redes del proyecto. Cambia las URL aqui en un solo lugar.
@@ -147,7 +163,6 @@ REDES_SOCIALES = [
     {"nombre": "Facebook", "icono": "f", "url": "https://www.facebook.com/"},
     {"nombre": "Instagram", "icono": "◎", "url": "https://www.instagram.com/"},
     {"nombre": "YouTube", "icono": "▶", "url": "https://www.youtube.com/"},
-    {"nombre": "6:B Colombia", "icono": "6:B", "url": "https://www.instagram.com/"},
 ]
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"

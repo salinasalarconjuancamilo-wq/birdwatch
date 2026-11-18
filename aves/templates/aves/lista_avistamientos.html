@@ -69,7 +69,6 @@
                 Por {{ avistamiento.usuario|default:"la comunidad" }} ·
                 💬 {{ avistamiento.comentarios.count }} ·
                 ✓ {{ avistamiento.validaciones.count }}
-                {% if avistamiento.tiene_coordenadas %} · <a href="{% url 'mapa' %}">ver en el mapa</a>{% endif %}
             </p>
         </article>
     {% empty %}

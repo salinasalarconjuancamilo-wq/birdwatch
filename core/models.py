@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.db import models
+from django.utils import timezone
 
 
 class Ave(models.Model):
@@ -49,3 +50,37 @@ class Deteccion(models.Model):
     def __str__(self):
         nombre = self.especie_es or self.especie_en
         return f"{nombre} ({self.confianza:.0%}) por {self.usuario}"
+
+
+class CodigoRecuperacion(models.Model):
+    """Código temporal enviado por correo para restablecer una contraseña."""
+
+    usuario = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="codigos_recuperacion",
+        verbose_name="usuario",
+    )
+    codigo = models.CharField("código", max_length=6)
+    creado_en = models.DateTimeField("creado en", auto_now_add=True)
+    usado_en = models.DateTimeField("usado en", null=True, blank=True)
+
+    class Meta:
+        verbose_name = "código de recuperación"
+        verbose_name_plural = "códigos de recuperación"
+        ordering = ["-creado_en"]
+
+    def __str__(self):
+        return f"Código para {self.usuario}"
+
+    def vigente(self):
+        minutos = getattr(settings, "CODIGO_RECUPERACION_MINUTOS", 15)
+        return self.usado_en is None and (timezone.now() - self.creado_en).total_seconds() < minutos * 60
+
+    @classmethod
+    def crear(cls, usuario):
+        """Invalida los códigos anteriores y devuelve uno nuevo de 6 dígitos."""
+        import secrets
+
+        cls.objects.filter(usuario=usuario, usado_en__isnull=True).update(usado_en=timezone.now())
+        return cls.objects.create(usuario=usuario, codigo=f"{secrets.randbelow(1000000):06d}")

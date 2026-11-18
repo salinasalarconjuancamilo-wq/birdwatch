@@ -26,8 +26,12 @@
         <a class="navegacion-enlace" href="{% url 'inicio' %}">Inicio</a>
         <a class="navegacion-enlace" href="{% url 'avistamientos' %}">Avistamientos</a>
         <a class="navegacion-enlace" href="{% url 'mapa' %}">Mapa</a>
-        <a class="navegacion-enlace" href="{% url 'estadisticas' %}">Estadísticas</a>
-        <a class="navegacion-enlace" href="{% url 'noticias' %}">Noticias</a>
+        {% if secciones_activas.estadisticas %}
+            <a class="navegacion-enlace" href="{% url 'estadisticas' %}">Estadísticas</a>
+        {% endif %}
+        {% if secciones_activas.noticias %}
+            <a class="navegacion-enlace" href="{% url 'noticias' %}">Noticias</a>
+        {% endif %}
         <a class="navegacion-enlace" href="{% url 'ayuda' %}">Ayuda</a>
 
         {% if user.is_authenticated %}
@@ -36,6 +40,7 @@
             {% if user.is_staff or user.is_superuser %}
                 <a class="navegacion-enlace" href="{% url 'avistamientos_pendientes' %}">Por aprobar</a>
                 <a class="navegacion-enlace" href="{% url 'carrusel_admin' %}">Carrusel</a>
+                <a class="navegacion-enlace" href="{% url 'contenido_admin' %}">Contenido</a>
                 <a class="navegacion-enlace" href="{% url 'admin:index' %}">Admin</a>
             {% endif %}
             <form class="formulario-salir" method="post" action="{% url 'salir' %}">
@@ -70,7 +75,9 @@
                 Comunidad de avistamiento, identificación por canto con <strong>BirdNET</strong>
                 y conservación del bosque de niebla. Mapa con <strong>Leaflet + OpenStreetMap</strong>.
             </p>
-            <p class="pie-aliado">Aliado: <strong>{{ aliado }}</strong></p>
+            {% if secciones_activas.aliado and aliado %}
+                <p class="pie-aliado">Aliado: <strong>{{ aliado }}</strong></p>
+            {% endif %}
             <p class="pie-enlaces">
                 <a href="{% url 'conducta' %}">Código de conducta</a> ·
                 <a href="{% url 'ayuda' %}">Centro de ayuda</a> ·

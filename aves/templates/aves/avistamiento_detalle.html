@@ -20,7 +20,6 @@
         {% if avistamiento.notas %}<p><strong>Notas:</strong> {{ avistamiento.notas|linebreaksbr }}</p>{% endif %}
         {% if avistamiento.tiene_coordenadas %}
             <p><strong>Coordenadas:</strong> {{ avistamiento.latitud }}, {{ avistamiento.longitud }}</p>
-            <a class="boton-secundario" href="{% url 'mapa' %}">Ver en el mapa</a>
         {% endif %}
         {% if avistamiento.foto %}
             <figure class="foto-avistamiento">

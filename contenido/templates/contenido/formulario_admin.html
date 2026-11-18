@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block titulo %}{{ titulo }}{% endblock %}
+
+{% block contenido %}
+<section class="cabecera-pagina">
+    <p class="portada-etiqueta">Panel de contenido</p>
+    <h1>{{ titulo }}</h1>
+    <p>Los campos marcados con * son obligatorios.</p>
+</section>
+
+<section class="panel formulario-panel">
+    <form method="post" class="formulario-admin" novalidate>
+        {% csrf_token %}
+        {% for campo in form %}
+            <div class="campo">
+                <label class="campo-etiqueta" for="{{ campo.id_for_label }}">
+                    {{ campo.label }}{% if campo.field.required %} *{% endif %}
+                </label>
+                {{ campo }}
+                {% if campo.help_text %}<p class="ayuda">{{ campo.help_text }}</p>{% endif %}
+                {% for error in campo.errors %}<p class="campo-error">{{ error }}</p>{% endfor %}
+            </div>
+        {% endfor %}
+        {% for error in form.non_field_errors %}<p class="campo-error">{{ error }}</p>{% endfor %}
+        <div class="acciones-formulario">
+            <button type="submit" class="boton-primario">Guardar</button>
+            <a class="boton-secundario" href="{% url volver %}">Cancelar</a>
+        </div>
+    </form>
+</section>
+{% endblock %}

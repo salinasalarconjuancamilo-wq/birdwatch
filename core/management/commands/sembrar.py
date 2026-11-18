@@ -1,5 +1,6 @@
-"""Carga los datos iniciales de BIRDWATCH: superusuario y aves del municipio."""
+"""Carga los datos iniciales de BIRDWATCH: usuarios y aves del municipio."""
 import json
+import os
 from pathlib import Path
 
 from django.contrib.auth.models import User
@@ -11,24 +12,41 @@ ARCHIVO = Path(__file__).resolve().parents[2] / "data" / "aves.json"
 
 
 class Command(BaseCommand):
-    help = "Crea el superusuario inicial (user / 1234) y las aves representativas de San Antonio del Tequendama."
+    help = "Crea el superusuario, un usuario de prueba y las aves representativas del municipio."
 
     def handle(self, *args, **options):
-        usuario, creado = User.objects.get_or_create(
+        clave_admin = os.environ.get("BIRDWATCH_ADMIN_PASSWORD", "1234")
+        clave_usuario = os.environ.get("BIRDWATCH_USUARIO_PASSWORD", "clave1234")
+
+        administrador, _ = User.objects.get_or_create(
             username="user",
             defaults={
                 "first_name": "Superusuario",
                 "email": "user@birdwatch.local",
             },
         )
-        usuario.is_staff = True
-        usuario.is_superuser = True
-        usuario.set_password("1234")
-        usuario.save()
-        if creado:
-            self.stdout.write(self.style.SUCCESS("Superusuario 'user' creado (clave: 1234)."))
-        else:
-            self.stdout.write(self.style.SUCCESS("Superusuario 'user' actualizado (clave: 1234)."))
+        administrador.first_name = "Superusuario"
+        administrador.email = "user@birdwatch.local"
+        administrador.is_staff = True
+        administrador.is_superuser = True
+        administrador.set_password(clave_admin)
+        administrador.save()
+        self.stdout.write(self.style.SUCCESS("Superusuario listo (acceso por correo electrónico)."))
+
+        observador, _ = User.objects.get_or_create(
+            username="observador",
+            defaults={
+                "first_name": "Observador",
+                "email": "observador@birdwatch.local",
+            },
+        )
+        observador.first_name = "Observador"
+        observador.email = "observador@birdwatch.local"
+        observador.is_staff = False
+        observador.is_superuser = False
+        observador.set_password(clave_usuario)
+        observador.save()
+        self.stdout.write(self.style.SUCCESS("Usuario de prueba listo (acceso por correo electrónico)."))
 
         datos = json.loads(ARCHIVO.read_text(encoding="utf-8"))
         for dato in datos:

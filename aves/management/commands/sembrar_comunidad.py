@@ -2,7 +2,7 @@
 
 Uso: ``python manage.py sembrar_comunidad``
 
-Crea especies, avistamientos con coordenadas (para el mapa), noticias y
+Crea especies, avistamientos, lugares del mapa, secciones, noticias y
 preguntas frecuentes. Es idempotente: se puede ejecutar varias veces.
 """
 from datetime import date, timedelta
@@ -13,7 +13,7 @@ from django.db import transaction
 from django.utils import timezone
 
 from aves.models import Ave, Avistamiento
-from contenido.models import Noticia, PreguntaFrecuente
+from contenido.models import LugarObservacion, Noticia, PreguntaFrecuente, Seccion
 
 
 ESPECIES = [
@@ -38,6 +38,46 @@ ZONAS_COORDS = {
     "Zona de picnic": (4.5575, -74.2905),
     "Campus SENA": (4.5550, -74.2880),
 }
+
+# Únicos lugares que el mapa público debe mostrar, tal como los indicó el equipo.
+LUGARES = [
+    {
+        "nombre": "Parque Nacional Natural Chicaque",
+        "tipo": "parque",
+        "ubicacion": "Soacha, Cundinamarca",
+        "descripcion": "Bosque de niebla y senderos para observar aves al sur de la sabana de Bogotá.",
+        "latitud": "4.606944",
+        "longitud": "-74.302778",
+        "orden": 1,
+    },
+    {
+        "nombre": "Zoológico Santa Cruz",
+        "tipo": "zoologico",
+        "ubicacion": "San Andrés de Antonio",
+        "descripcion": "Lugar de interés para recorrer en familia y conocer aves en cautiverio y su entorno.",
+        "latitud": "4.583569",
+        "longitud": "-74.332948",
+        "orden": 2,
+    },
+    {
+        "nombre": "Reserva Natural Kendama",
+        "tipo": "reserva",
+        "ubicacion": "Ubicación por definir",
+        "descripcion": "Se mostrará en el mapa cuando se confirme su ubicación. No se inventan coordenadas.",
+        "latitud": None,
+        "longitud": None,
+        "orden": 3,
+    },
+]
+
+# Las secciones sin información real permanecen desactivadas.
+SECCIONES = [
+    ("estadisticas", "Tu comunidad en números", "Indicadores de avistamientos de la comunidad.", False),
+    ("noticias", "Noticias y novedades", "Novedades del proyecto y del parque.", False),
+    ("aliado", "Aliado de Colombia — Red de Observadores", "Convenio pendiente; aún no existe.", False),
+    ("mapa", "Mapa de lugares", "Parques, zoológicos y reservas para observar aves.", True),
+    ("ayuda", "Centro de ayuda", "Preguntas frecuentes y guía de identificación.", True),
+]
 
 AVISTAMIENTOS = [
     ("Chinigüe (copetón)", "Sendero al Salto", "Sendero ecológico", 3, False,
@@ -85,10 +125,10 @@ NOTICIAS = [
         False,
     ),
     (
-        "6:B Colombia se suma como aliado de BirdWatch",
-        "La red de observadores acompaña el proyecto con conocimiento compartido y apoyo en la identificación.",
-        "Gracias a esta alianza, la comunidad podrá acceder a guías, jornadas de observación "
-        "y validación de registros. «Cada ave cuenta, cada observación importa» es el lema que nos une.",
+        "Tres lugares para salir a observar aves",
+        "Chicaque, el Zoológico Santa Cruz y la Reserva Natural Kendama ya aparecen en la guía del mapa.",
+        "El mapa de BirdWatch muestra estos tres lugares de interés. Kendama queda enumerada "
+        "con la ubicación por definir hasta que se confirme oficialmente; no se inventan parques ni coordenadas.",
         True,
     ),
     (
@@ -109,8 +149,9 @@ PREGUNTAS = [
      "Entra a «Avistamientos» y pulsa «Registrar avistamiento». Indica la especie, la fecha, "
      "el lugar, la zona y, si puedes, las coordenadas y una foto. Un administrador revisará el registro."),
     ("¿Para qué sirven las coordenadas?",
-     "Permiten que tu avistamiento aparezca como un punto en el mapa interactivo y que se puedan "
-     "calcular las especies por zona. Si no las conoces, puedes dejarlas en blanco."),
+     "Ayudan a ubicar cada avistamiento dentro del parque y a calcular las especies por zona. "
+     "El mapa público ya no muestra aves: solo los lugares de observación indicados por el equipo. "
+     "Si no conoces las coordenadas, puedes dejarlas en blanco."),
     ("¿Qué significa «validar información»?",
      "Es confirmar que un avistamiento te parece fiable. Cada registro muestra cuántas validaciones "
      "tiene; una persona solo puede validar una vez."),
@@ -124,7 +165,7 @@ PREGUNTAS = [
 
 
 class Command(BaseCommand):
-    help = "Siembra especies, avistamientos, noticias y preguntas de ejemplo (idempotente)."
+    help = "Siembra especies, avistamientos, lugares, secciones, noticias y preguntas de ejemplo (idempotente)."
 
     @transaction.atomic
     def handle(self, *args, **options):
@@ -145,7 +186,23 @@ class Command(BaseCommand):
             especies[nombre] = ave
         self.stdout.write(f"  {len(especies)} especies listas")
 
-        # 2. Avistamientos de ejemplo con coordenadas.
+        # 2. Lugares del mapa: solo los tres indicados por el equipo.
+        for lugar in LUGARES:
+            LugarObservacion.objects.update_or_create(
+                nombre=lugar["nombre"],
+                defaults=lugar,
+            )
+        self.stdout.write(f"  {len(LUGARES)} lugares del mapa listos")
+
+        # 3. Secciones activables (sin datos reales = desactivadas).
+        for clave, nombre, descripcion, activa in SECCIONES:
+            Seccion.objects.update_or_create(
+                clave=clave,
+                defaults={"nombre": nombre, "descripcion": descripcion, "activa": activa},
+            )
+        self.stdout.write(f"  {len(SECCIONES)} secciones configuradas")
+
+        # 4. Avistamientos de ejemplo con coordenadas.
         hoy = date.today()
         creados = 0
         for indice, (nombre, lugar, zona, cantidad, especial, notas) in enumerate(AVISTAMIENTOS):

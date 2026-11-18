@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block titulo %}Verificar código{% endblock %}
+
+{% block contenido %}
+<section class="seccion-login">
+    <div class="tarjeta-login">
+        <img class="login-logo" src="{% static 'img/logo.png' %}" alt="Logotipo de BirdWatch" width="88" height="88">
+        <h1 class="login-titulo">Verificar código</h1>
+        <p class="login-sub">Escribe el código de 6 dígitos que enviamos a tu correo electrónico.</p>
+
+        {% for error in form.non_field_errors %}<p class="login-error" role="alert">{{ error }}</p>{% endfor %}
+
+        <form method="post" action="{% url 'recuperar_verificar' %}" class="formulario-login" novalidate>
+            {% csrf_token %}
+            <div class="campo">
+                <label class="campo-etiqueta" for="id-correo">Correo electrónico</label>
+                <input type="email" name="correo" id="id-correo" autocomplete="email" value="{{ form.correo.value|default:'' }}" required>
+                {% for error in form.correo.errors %}<p class="campo-error">{{ error }}</p>{% endfor %}
+            </div>
+            <div class="campo">
+                <label class="campo-etiqueta" for="id-codigo">Código de verificación</label>
+                <input type="text" name="codigo" id="id-codigo" inputmode="numeric" maxlength="6" placeholder="000000" required>
+                {% for error in form.codigo.errors %}<p class="campo-error">{{ error }}</p>{% endfor %}
+            </div>
+            <button type="submit" class="boton-entrar">Verificar</button>
+        </form>
+
+        <p class="login-registro">¿Necesitas otro código? <a href="{% url 'recuperar' %}">Solicitar uno nuevo</a></p>
+        <p class="login-registro">¿Ya tienes cuenta? <a href="{% url 'entrar' %}">Iniciar sesión</a></p>
+        <a class="login-volver" href="{% url 'inicio' %}">&#8592; Volver al inicio</a>
+    </div>
+</section>
+{% endblock %}

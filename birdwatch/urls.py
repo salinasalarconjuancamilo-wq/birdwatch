@@ -14,7 +14,7 @@ urlpatterns = [
     path("avistamientos/", include("aves.urls")),
     # Mapa interactivo y estadísticas (rutas cortas de acceso público).
     path("mapa/", aves_views.mapa, name="mapa"),
-    path("mapa/datos/", aves_views.avistamientos_json, name="avistamientos_json"),
+    path("mapa/datos/", aves_views.lugares_json, name="lugares_json"),
     path("estadisticas/", aves_views.estadisticas, name="estadisticas"),
     # Contenido dinámico: noticias, ayuda, contacto y código de conducta.
     path("", include("contenido.urls")),

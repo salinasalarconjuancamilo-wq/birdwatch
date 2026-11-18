@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
-{% block titulo %}Mapa de avistamientos{% endblock %}
+{% block titulo %}Mapa de lugares para observar aves{% endblock %}
 
 {% block estilos %}
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
@@ -8,38 +8,43 @@
 
 {% block contenido %}
 <section class="cabecera-pagina">
-    <p class="portada-etiqueta">Mapa interactivo</p>
-    <h1>¿Dónde se han visto las aves?</h1>
+    <p class="portada-etiqueta">Guía de campo</p>
+    <h1>Lugares para observar aves</h1>
     <p>
-        Cada punto es un avistamiento aprobado por la comunidad en
-        {{ nombre_parque }}. Hecho con <strong>Leaflet + OpenStreetMap</strong>:
+        Aquí encontrarás los parques, zoológicos y reservas que la comunidad ha indicado
+        para salir a observar aves. El mapa usa <strong>Leaflet + OpenStreetMap</strong>:
         gratis, ligero y sin costos por uso.
     </p>
 </section>
 
 <section class="panel mapa-panel">
-    <div id="mapa" class="mapa" role="application" aria-label="Mapa de avistamientos de aves"></div>
+    <div id="mapa" class="mapa" role="application" aria-label="Mapa de lugares para observar aves"></div>
     <noscript>
         <p>Activa JavaScript para ver el mapa interactivo.</p>
     </noscript>
-    <p class="ayuda" id="mapa-estado">Cargando marcadores…</p>
+    <p class="ayuda" id="mapa-estado">Cargando lugares…</p>
 </section>
 
 <section class="panel">
-    <h2>Avistamientos en el mapa</h2>
+    <h2>Lugares de interés</h2>
     <ul class="lista-sencilla">
-        {% for marcador in marcadores %}
+        {% for lugar in lugares %}
             <li>
-                <a href="{{ marcador.detalle }}">{{ marcador.especie }}</a>
-                — {{ marcador.lugar }} ({{ marcador.zona }}) · {{ marcador.fecha }}
+                <strong>{{ lugar.nombre }}</strong> — {{ lugar.ubicacion }}
+                {% if lugar.latitud and lugar.longitud %}
+                    <span class="etiqueta">En el mapa</span>
+                {% else %}
+                    <span class="etiqueta pendiente">Ubicación por definir</span>
+                {% endif %}
+                {% if lugar.descripcion %}<br><span class="ayuda">{{ lugar.descripcion }}</span>{% endif %}
             </li>
         {% empty %}
-            <li>Todavía no hay avistamientos con coordenadas. ¡Registra el primero!</li>
+            <li>Todavía no hay lugares registrados. El administrador puede agregarlos desde el panel de contenido.</li>
         {% endfor %}
     </ul>
 </section>
 
-{{ marcadores|json_script:"datos-marcadores" }}
+{{ lugares|json_script:"datos-marcadores" }}
 {% endblock %}
 
 {% block scripts %}

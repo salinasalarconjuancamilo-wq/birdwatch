@@ -8,4 +8,18 @@ urlpatterns = [
     path("ayuda/", views.ayuda, name="ayuda"),
     path("contacto/", views.contacto, name="contacto"),
     path("conducta/", views.conducta, name="conducta"),
+    # Panel de contenido (solo administradores).
+    path("contenido/admin/", views.panel_contenido, name="contenido_admin"),
+    path("contenido/admin/lugares/nuevo/", views.lugar_nuevo, name="lugar_nuevo"),
+    path("contenido/admin/lugares/<int:pk>/editar/", views.lugar_editar, name="lugar_editar"),
+    path("contenido/admin/lugares/<int:pk>/eliminar/", views.lugar_eliminar, name="lugar_eliminar"),
+    path("contenido/admin/lugares/<int:pk>/alternar/", views.lugar_alternar, name="lugar_alternar"),
+    path("contenido/admin/secciones/nueva/", views.seccion_nueva, name="seccion_nueva"),
+    path("contenido/admin/secciones/<int:pk>/editar/", views.seccion_editar, name="seccion_editar"),
+    path("contenido/admin/secciones/<int:pk>/eliminar/", views.seccion_eliminar, name="seccion_eliminar"),
+    path("contenido/admin/secciones/<int:pk>/alternar/", views.seccion_alternar, name="seccion_alternar"),
+    path("contenido/admin/noticias/nueva/", views.noticia_nueva, name="noticia_nueva"),
+    path("contenido/admin/noticias/<int:pk>/editar/", views.noticia_editar, name="noticia_editar"),
+    path("contenido/admin/noticias/<int:pk>/eliminar/", views.noticia_eliminar, name="noticia_eliminar"),
+    path("contenido/admin/noticias/<int:pk>/alternar/", views.noticia_alternar, name="noticia_alternar"),
 ]

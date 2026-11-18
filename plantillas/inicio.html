@@ -64,6 +64,7 @@
     <div class="carrusel-puntos" id="carrusel-puntos" role="tablist" aria-label="Ir a un ave del carrusel"></div>
 </section>
 
+{% if secciones_activas.estadisticas %}
 <section class="seccion seccion-destacados">
     <h2 class="seccion-titulo">Nuestra comunidad en números</h2>
     <p class="seccion-sub">Cada registro aporta a la conservación de {{ nombre_parque }}.</p>
@@ -92,11 +93,12 @@
         </article>
     </div>
     <div class="enlaces-modulos">
-        <a href="{% url 'mapa' %}">🗺️ Ver el mapa de avistamientos</a>
+        <a href="{% url 'mapa' %}">🗺️ Ver el mapa de lugares</a>
         <a href="{% url 'estadisticas' %}">📊 Ver estadísticas completas</a>
         <a href="{% url 'avistamiento_nuevo' %}">📝 Registrar un avistamiento</a>
     </div>
 </section>
+{% endif %}
 
 <section class="seccion seccion-vision" id="vision">
     <h2 class="seccion-titulo">Nuestro proyecto</h2>
@@ -130,6 +132,7 @@
     </div>
 </section>
 
+{% if secciones_activas.noticias %}
 <section class="seccion seccion-noticias">
     <h2 class="seccion-titulo">Noticias y novedades</h2>
     <p class="seccion-sub">Lo último del proyecto y del parque.</p>
@@ -151,6 +154,7 @@
     </div>
     <p class="centro"><a class="boton-secundario" href="{% url 'noticias' %}">Todas las noticias</a></p>
 </section>
+{% endif %}
 
 <section class="llamado-final">
     <h2>¿Ya oíste ese canto y no sabes qué ave es?</h2>

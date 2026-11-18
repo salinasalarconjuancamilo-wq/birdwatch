@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block titulo %}Nueva contraseña{% endblock %}
+
+{% block contenido %}
+<section class="seccion-login">
+    <div class="tarjeta-login">
+        <img class="login-logo" src="{% static 'img/logo.png' %}" alt="Logotipo de BirdWatch" width="88" height="88">
+        <h1 class="login-titulo">Nueva contraseña</h1>
+        <p class="login-sub">Código verificado para {{ usuario.email }}. Elige una contraseña nueva.</p>
+
+        {% for error in form.non_field_errors %}<p class="login-error" role="alert">{{ error }}</p>{% endfor %}
+
+        <form method="post" action="{% url 'recuperar_nueva_clave' %}" class="formulario-login" novalidate>
+            {% csrf_token %}
+            <div class="campo">
+                <label class="campo-etiqueta" for="id-contrasena1">Nueva contraseña</label>
+                <input type="password" name="contrasena1" id="id-contrasena1" autocomplete="new-password" required>
+                {% for error in form.contrasena1.errors %}<p class="campo-error">{{ error }}</p>{% endfor %}
+            </div>
+            <div class="campo">
+                <label class="campo-etiqueta" for="id-contrasena2">Confirmar nueva contraseña</label>
+                <input type="password" name="contrasena2" id="id-contrasena2" autocomplete="new-password" required>
+                {% for error in form.contrasena2.errors %}<p class="campo-error">{{ error }}</p>{% endfor %}
+            </div>
+            <button type="submit" class="boton-entrar">Guardar contraseña</button>
+        </form>
+
+        <p class="login-registro">¿Ya tienes cuenta? <a href="{% url 'entrar' %}">Iniciar sesión</a></p>
+        <a class="login-volver" href="{% url 'inicio' %}">&#8592; Volver al inicio</a>
+    </div>
+</section>
+{% endblock %}

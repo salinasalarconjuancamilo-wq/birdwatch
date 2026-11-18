@@ -1,6 +1,7 @@
 /* ============================================================
-   BirdWatch · Mapa interactivo con Leaflet + OpenStreetMap.
+   BirdWatch · Mapa de lugares con Leaflet + OpenStreetMap.
    Los datos se inyectan desde Django con json_script (#datos-marcadores).
+   Este mapa NO muestra avistamientos de aves, solo lugares de interés.
    ============================================================ */
 (function () {
     "use strict";
@@ -16,21 +17,30 @@
         return;
     }
 
-    var marcadores = [];
+    var lugares = [];
     try {
-        marcadores = JSON.parse(nodo.textContent) || [];
+        lugares = JSON.parse(nodo.textContent) || [];
     } catch (error) {
         if (estado) { estado.textContent = "Los datos del mapa no son válidos."; }
         return;
     }
 
-    // Centro aproximado del Parque Ecológico San Antonio del Tequendama.
-    var centro = [4.5589, -74.2933];
-    if (marcadores.length) {
-        centro = [marcadores[0].latitud, marcadores[0].longitud];
+    function escapar(texto) {
+        return String(texto || "").replace(/[&<>"']/g, function (caracter) {
+            return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[caracter];
+        });
     }
 
-    var mapa = L.map(contenedor, { scrollWheelZoom: false }).setView(centro, 13);
+    // Centro aproximado del área de San Antonio del Tequendama / Soacha.
+    var centro = [4.59, -74.31];
+    var dibujables = lugares.filter(function (lugar) {
+        return typeof lugar.latitud === "number" && typeof lugar.longitud === "number";
+    });
+    if (dibujables.length) {
+        centro = [dibujables[0].latitud, dibujables[0].longitud];
+    }
+
+    var mapa = L.map(contenedor, { scrollWheelZoom: false }).setView(centro, 12);
 
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
         maxZoom: 19,
@@ -39,33 +49,27 @@
 
     var capa = L.layerGroup().addTo(mapa);
     var limites = [];
+    var iconos = { parque: "🌲", zoologico: "🦁", reserva: "🌳", otro: "📍" };
 
-    marcadores.forEach(function (item) {
+    dibujables.forEach(function (lugar) {
         var icono = L.divIcon({
             className: "marcador-birdwatch",
-            html: item.caso_especial ? "★" : "🐦",
+            html: iconos[lugar.tipo] || iconos.otro,
             iconSize: [30, 30],
             iconAnchor: [15, 15]
         });
-        var marca = L.marker([item.latitud, item.longitud], { icon: icono }).addTo(capa);
-        var foto = item.foto
-            ? '<p><img src="' + item.foto + '" alt="Foto de ' + item.especie + '" style="max-width:100%;max-height:150px;border-radius:8px"></p>'
-            : "";
+        var marca = L.marker([lugar.latitud, lugar.longitud], { icon: icono }).addTo(capa);
         var html =
-            "<strong><a href=\"" + item.detalle + "\">" + item.especie + "</a></strong><br>" +
-            "<em>" + (item.cientifico || "") + "</em><br>" +
-            item.lugar + " · " + item.zona + "<br>" +
-            "Fecha: " + item.fecha + " · Cantidad: " + item.cantidad + "<br>" +
-            (item.caso_especial ? "<strong>★ Caso especial</strong><br>" : "") +
-            "Validaciones: " + item.validaciones + "<br>" +
-            (item.notas ? "<p>" + item.notas + "</p>" : "") +
-            foto;
+            "<strong>" + escapar(lugar.nombre) + "</strong><br>" +
+            "<em>" + escapar(lugar.tipo_texto) + "</em><br>" +
+            escapar(lugar.ubicacion) +
+            (lugar.descripcion ? "<p>" + escapar(lugar.descripcion) + "</p>" : "");
         marca.bindPopup(html);
-        limites.push([item.latitud, item.longitud]);
+        limites.push([lugar.latitud, lugar.longitud]);
     });
 
     if (limites.length > 1) {
-        mapa.fitBounds(L.latLngBounds(limites).pad(0.25));
+        mapa.fitBounds(L.latLngBounds(limites).pad(0.35));
     }
 
     mapa.on("load", function () {
@@ -73,8 +77,13 @@
     });
 
     if (estado) {
-        estado.textContent = marcadores.length
-            ? "Mostrando " + marcadores.length + " avistamiento(s) en el mapa."
-            : "Aún no hay avistamientos con coordenadas. ¡Registra el primero!";
+        var sinCoordenadas = lugares.length - dibujables.length;
+        var mensaje = dibujables.length
+            ? "Mostrando " + dibujables.length + " lugar(es) en el mapa."
+            : "Aún no hay lugares con coordenadas.";
+        if (sinCoordenadas) {
+            mensaje += " " + sinCoordenadas + " lugar(es) tienen la ubicación por definir.";
+        }
+        estado.textContent = mensaje;
     }
 })();
