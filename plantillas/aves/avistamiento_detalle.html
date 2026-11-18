@@ -31,6 +31,9 @@
 
     <div class="detalle-acciones">
         {% if user.is_authenticated %}
+            {% if user.is_staff or user.is_superuser or avistamiento.usuario_id == user.id %}
+                <a class="boton-secundario" href="{% url 'avistamiento_editar' avistamiento.pk %}">✏️ Editar registro</a>
+            {% endif %}
             <form method="post" action="{% url 'avistamiento_validar' avistamiento.pk %}">
                 {% csrf_token %}
                 <button class="boton-secundario" type="submit">

@@ -210,6 +210,9 @@
 .etiqueta.pendiente { background: #ffe8d6; color: #9a4d00; padding: 0.15rem 0.6rem; border-radius: 999px; font-style: normal; font-weight: 700; }
 .avistamiento-meta { font-size: 0.9rem; color: var(--verde-medio); margin: 0.5rem 0; }
 .avistamiento-pie { font-size: 0.85rem; color: var(--texto-gris); margin-top: 0.7rem; border-top: 1px dashed var(--verde-menta); padding-top: 0.6rem; }
+.acciones-tarjeta { display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; margin-top: 0.8rem; }
+.acciones-tarjeta form { margin: 0; }
+.boton-mini { padding: 0.45rem 0.95rem; font-size: 0.85rem; }
 .vacio { text-align: center; color: var(--texto-gris); padding: 1.5rem; }
 
 /* ---------------- Detalle y comentarios ---------------- */
@@ -229,6 +232,8 @@
 .fila-pendiente { display: flex; justify-content: space-between; align-items: center; gap: 1rem; border-bottom: 1px dashed var(--verde-menta); padding: 0.8rem 0; }
 .fila-pendiente h2 { font-size: 1.1rem; margin: 0; }
 .fila-pendiente p { margin: 0.2rem 0 0; font-size: 0.9rem; color: var(--texto-gris); }
+.acciones-pendiente { display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap; }
+.acciones-pendiente form { margin: 0; }
 
 /* ---------------- Mapa ---------------- */
 .mapa-panel { padding: 0.6rem; }

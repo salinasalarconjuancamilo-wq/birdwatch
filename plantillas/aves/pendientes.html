@@ -15,10 +15,13 @@
                 <h2><a href="{% url 'avistamiento_detalle' avistamiento.pk %}">{{ avistamiento.ave.nombre_comun }}</a></h2>
                 <p>{{ avistamiento.lugar }} · {{ avistamiento.fecha|date:"d M Y" }} · por {{ avistamiento.usuario|default:"la comunidad" }}</p>
             </div>
-            <form method="post" action="{% url 'avistamiento_aprobar' avistamiento.pk %}">
-                {% csrf_token %}
-                <button class="boton-ave" type="submit">Aprobar</button>
-            </form>
+            <div class="acciones-pendiente">
+                <a class="boton-secundario" href="{% url 'avistamiento_editar' avistamiento.pk %}">Editar</a>
+                <form method="post" action="{% url 'avistamiento_aprobar' avistamiento.pk %}">
+                    {% csrf_token %}
+                    <button class="boton-ave" type="submit">Aprobar</button>
+                </form>
+            </div>
         </article>
     {% empty %}
         <p class="vacio">Todo está al día: no hay avistamientos pendientes de aprobación.</p>

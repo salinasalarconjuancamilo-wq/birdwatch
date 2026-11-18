@@ -109,6 +109,36 @@ def crear_avistamiento(request):
     )
 
 
+@solo_usuario
+def editar_avistamiento(request, pk):
+    """Edita un avistamiento propio (los administradores editan cualquiera)."""
+    avistamiento = get_object_or_404(Avistamiento, pk=pk)
+    if not (es_administrador(request.user) or avistamiento.usuario_id == request.user.id):
+        messages.error(request, "Solo puedes editar tus propios avistamientos.")
+        return redirect("avistamiento_detalle", pk=pk)
+
+    if request.method == "POST":
+        formulario = AvistamientoForm(
+            request.POST, request.FILES, instance=avistamiento
+        )
+        if formulario.is_valid():
+            avistamiento = formulario.save()
+            messages.success(request, "Avistamiento actualizado.")
+            return redirect("avistamiento_detalle", pk=avistamiento.pk)
+    else:
+        formulario = AvistamientoForm(instance=avistamiento)
+
+    return render(
+        request,
+        "aves/avistamiento_form.html",
+        {
+            "formulario": formulario,
+            "zonas": ZONAS_PARQUE,
+            "avistamiento": avistamiento,
+        },
+    )
+
+
 def detalle_avistamiento(request, pk):
     """Ficha de un avistamiento con comentarios y validaciones."""
     avistamiento = get_object_or_404(Avistamiento.objects.select_related("ave", "usuario"), pk=pk)

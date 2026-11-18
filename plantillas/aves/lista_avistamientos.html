@@ -8,7 +8,7 @@
     <p>Explora las observaciones de la comunidad en {{ nombre_parque }}.</p>
     <div class="acciones-pagina">
         {% if user.is_authenticated %}
-            <a class="boton-ave" href="{% url 'avistamiento_nuevo' %}">＋ Registrar avistamiento</a>
+            <a class="boton-ave" href="{% url 'avistamiento_nuevo' %}">＋ Agregar avistamiento</a>
         {% else %}
             <a class="boton-secundario" href="{% url 'entrar' %}?siguiente=/avistamientos/nuevo/">Inicia sesión para registrar</a>
         {% endif %}
@@ -70,6 +70,21 @@
                 💬 {{ avistamiento.comentarios.count }} ·
                 ✓ {{ avistamiento.validaciones.count }}
             </p>
+            {% if user.is_authenticated %}
+                {% if user.is_staff or user.is_superuser or avistamiento.usuario_id == user.id %}
+                    <div class="acciones-tarjeta">
+                        <a class="boton-secundario boton-mini" href="{% url 'avistamiento_editar' avistamiento.pk %}">✏️ Editar</a>
+                        {% if user.is_staff or user.is_superuser %}
+                            <form method="post" action="{% url 'avistamiento_eliminar' avistamiento.pk %}"
+                                  onsubmit="return confirm('¿Eliminar este avistamiento?');">
+                                {% csrf_token %}
+                                <input type="hidden" name="siguiente" value="{% url 'avistamientos' %}">
+                                <button class="boton-peligro boton-mini" type="submit">🗑️ Eliminar</button>
+                            </form>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            {% endif %}
         </article>
     {% empty %}
         <p class="vacio">Todavía no hay avistamientos con estos filtros. ¡Sé la primera persona en registrar uno!</p>

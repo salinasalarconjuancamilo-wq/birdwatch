@@ -1,10 +1,10 @@
 {% extends "base.html" %}
-{% block titulo %}Registrar avistamiento{% endblock %}
+{% block titulo %}{% if avistamiento %}Editar avistamiento{% else %}Registrar avistamiento{% endif %}{% endblock %}
 
 {% block contenido %}
 <section class="cabecera-pagina">
     <p class="portada-etiqueta">Comunidad BirdWatch</p>
-    <h1>Registrar un avistamiento</h1>
+    <h1>{% if avistamiento %}Editar avistamiento{% else %}Registrar un avistamiento{% endif %}</h1>
     <p>{{ frase_inspiradora }}</p>
 </section>
 
@@ -21,8 +21,12 @@
             </div>
         {% endfor %}
         <div class="acciones-formulario">
-            <button class="boton-ave" type="submit">Guardar avistamiento</button>
-            <a class="boton-secundario" href="{% url 'avistamientos' %}">Cancelar</a>
+            <button class="boton-ave" type="submit">{% if avistamiento %}Guardar cambios{% else %}Guardar avistamiento{% endif %}</button>
+            {% if avistamiento %}
+                <a class="boton-secundario" href="{% url 'avistamiento_detalle' avistamiento.pk %}">Cancelar</a>
+            {% else %}
+                <a class="boton-secundario" href="{% url 'avistamientos' %}">Cancelar</a>
+            {% endif %}
         </div>
     </form>
 </section>
