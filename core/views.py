@@ -12,6 +12,9 @@ from django.urls import reverse
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.decorators.http import require_POST
 
+from aves.estadisticas import resumen_estadisticas
+from contenido.models import Noticia
+
 from .birdnet import CONFIANZA_MINIMA, analizar_audio, comprobar_servicio
 from .forms import AveForm
 from .models import Ave, Deteccion
@@ -35,8 +38,13 @@ def solo_superadmin(vista):
 
 
 def inicio(request):
-    """Portada: carrusel de aves del municipio, visión y misión."""
-    return render(request, "inicio.html", {"aves": Ave.objects.filter(activo=True)})
+    """Portada: carrusel de aves, noticias, destacados, visión y misión."""
+    contexto = {
+        "aves": Ave.objects.filter(activo=True),
+        "noticias": Noticia.objects.filter(publicada=True)[:3],
+    }
+    contexto.update(resumen_estadisticas())
+    return render(request, "inicio.html", contexto)
 
 
 @solo_superadmin
@@ -251,7 +259,18 @@ def historial(request):
 
 def estado(request):
     """Estado de los servicios para el panel de la página de identificación."""
-    return JsonResponse({"postgres": True, "birdnet": comprobar_servicio()})
+    motor = (
+        "sqlite"
+        if settings.DATABASES["default"]["ENGINE"].endswith("sqlite3")
+        else "postgres"
+    )
+    return JsonResponse(
+        {
+            "motor": motor,
+            "postgres": motor == "postgres",
+            "birdnet": comprobar_servicio(),
+        }
+    )
 
 
 def service_worker(request):

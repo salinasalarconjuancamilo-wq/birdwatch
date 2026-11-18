@@ -41,6 +41,8 @@ INSTALLED_APPS = [
     # App original del repositorio: catalogo y avistamientos de aves
     # (se administra desde /admin/).
     "aves",
+    # Contenido dinamico de la comunidad: noticias, ayuda y contacto.
+    "contenido",
 ]
 
 MIDDLEWARE = [
@@ -65,6 +67,8 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                # Identidad del sitio, frase inspiradora y redes sociales.
+                "birdwatch.context_processors.datos_sitio",
             ],
         },
     },
@@ -127,5 +131,23 @@ USE_TZ = True
 STATIC_URL = "/estaticos/"
 STATICFILES_DIRS = [BASE_DIR / "estaticos"]
 STATIC_ROOT = BASE_DIR / "estaticos-compilados"
+
+# ------------------------------------------------------------------ Archivos subidos
+# Fotos de avistamientos y noticias. En produccion servirl con el servidor web.
+MEDIA_URL = "/medios/"
+MEDIA_ROOT = BASE_DIR / "medios"
+
+# ------------------------------------------------------------------ Identidad del sitio
+FRASE_INSPIRADORA = "Cada ave cuenta, cada observación importa"
+ALIADO = "6:B Colombia — red de observadores"
+NOMBRE_PARQUE = "Parque Ecológico San Antonio del Tequendama"
+
+# Enlaces directos a las redes del proyecto. Cambia las URL aqui en un solo lugar.
+REDES_SOCIALES = [
+    {"nombre": "Facebook", "icono": "f", "url": "https://www.facebook.com/"},
+    {"nombre": "Instagram", "icono": "◎", "url": "https://www.instagram.com/"},
+    {"nombre": "YouTube", "icono": "▶", "url": "https://www.youtube.com/"},
+    {"nombre": "6:B Colombia", "icono": "6:B", "url": "https://www.instagram.com/"},
+]
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"

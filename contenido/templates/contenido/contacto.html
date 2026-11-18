@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block titulo %}Contacto{% endblock %}
+
+{% block contenido %}
+<section class="cabecera-pagina">
+    <p class="portada-etiqueta">Escríbenos</p>
+    <h1>Contacto</h1>
+    <p>
+        ¿Tienes una duda, una sugerencia o un avistamiento especial que reportar?
+        Déjanos tu mensaje.
+    </p>
+</section>
+
+{% if enviado %}
+<section class="panel confirmacion">
+    <h2>¡Mensaje enviado!</h2>
+    <p>Gracias por escribirnos. Te responderemos lo antes posible.</p>
+    <a class="boton-secundario" href="{% url 'contacto' %}">Enviar otro mensaje</a>
+</section>
+{% else %}
+<section class="panel formulario-panel">
+    <form method="post" class="formulario-comunidad">
+        {% csrf_token %}
+        {% for campo in formulario %}
+            <div class="campo">
+                {{ campo.label_tag }}
+                {{ campo }}
+                {% if campo.errors %}<div class="errores">{{ campo.errors }}</div>{% endif %}
+            </div>
+        {% endfor %}
+        <div class="acciones-formulario">
+            <button class="boton-ave" type="submit">Enviar mensaje</button>
+        </div>
+    </form>
+</section>
+{% endif %}
+
+<section class="panel">
+    <h2>También puedes encontrarnos en</h2>
+    <p class="pie-redes">
+        {% for red in redes_sociales %}
+            <a href="{{ red.url }}" target="_blank" rel="noopener noreferrer">
+                <span class="red-icono" aria-hidden="true">{{ red.icono }}</span>
+                <span>{{ red.nombre }}</span>
+            </a>
+        {% endfor %}
+    </p>
+    <p>Aliado del proyecto: <strong>{{ aliado }}</strong>.</p>
+</section>
+{% endblock %}

@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% load static %}
+{% block titulo %}Mapa de avistamientos{% endblock %}
+
+{% block estilos %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+{% endblock %}
+
+{% block contenido %}
+<section class="cabecera-pagina">
+    <p class="portada-etiqueta">Mapa interactivo</p>
+    <h1>¿Dónde se han visto las aves?</h1>
+    <p>
+        Cada punto es un avistamiento aprobado por la comunidad en
+        {{ nombre_parque }}. Hecho con <strong>Leaflet + OpenStreetMap</strong>:
+        gratis, ligero y sin costos por uso.
+    </p>
+</section>
+
+<section class="panel mapa-panel">
+    <div id="mapa" class="mapa" role="application" aria-label="Mapa de avistamientos de aves"></div>
+    <noscript>
+        <p>Activa JavaScript para ver el mapa interactivo.</p>
+    </noscript>
+    <p class="ayuda" id="mapa-estado">Cargando marcadores…</p>
+</section>
+
+<section class="panel">
+    <h2>Avistamientos en el mapa</h2>
+    <ul class="lista-sencilla">
+        {% for marcador in marcadores %}
+            <li>
+                <a href="{{ marcador.detalle }}">{{ marcador.especie }}</a>
+                — {{ marcador.lugar }} ({{ marcador.zona }}) · {{ marcador.fecha }}
+            </li>
+        {% empty %}
+            <li>Todavía no hay avistamientos con coordenadas. ¡Registra el primero!</li>
+        {% endfor %}
+    </ul>
+</section>
+
+{{ marcadores|json_script:"datos-marcadores" }}
+{% endblock %}
+
+{% block scripts %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="{% static 'js/mapa.js' %}"></script>
+{% endblock %}

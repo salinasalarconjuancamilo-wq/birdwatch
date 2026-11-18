@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block titulo %}{{ avistamiento.ave.nombre_comun }}{% endblock %}
+
+{% block contenido %}
+<section class="cabecera-pagina">
+    <p class="portada-etiqueta">Avistamiento #{{ avistamiento.pk }}</p>
+    <h1>{{ avistamiento.ave.nombre_comun }}</h1>
+    <p class="nombre-cientifico">{{ avistamiento.ave.nombre_cientifico }}</p>
+</section>
+
+<section class="panel detalle-avistamiento">
+    <div class="detalle-datos">
+        <p><strong>Lugar:</strong> {{ avistamiento.lugar }}</p>
+        <p><strong>Zona:</strong> {{ avistamiento.get_zona_display|default:"No indicada" }}</p>
+        <p><strong>Fecha:</strong> {{ avistamiento.fecha|date:"d M Y" }}</p>
+        <p><strong>Cantidad:</strong> {{ avistamiento.cantidad }} ave(s)</p>
+        <p><strong>Registrado por:</strong> {{ avistamiento.usuario|default:"la comunidad" }}</p>
+        {% if avistamiento.caso_especial %}<p class="etiqueta especial">★ Caso especial</p>{% endif %}
+        {% if not avistamiento.aprobado %}<p class="etiqueta pendiente">Pendiente de aprobación</p>{% endif %}
+        {% if avistamiento.notas %}<p><strong>Notas:</strong> {{ avistamiento.notas|linebreaksbr }}</p>{% endif %}
+        {% if avistamiento.tiene_coordenadas %}
+            <p><strong>Coordenadas:</strong> {{ avistamiento.latitud }}, {{ avistamiento.longitud }}</p>
+            <a class="boton-secundario" href="{% url 'mapa' %}">Ver en el mapa</a>
+        {% endif %}
+        {% if avistamiento.foto %}
+            <figure class="foto-avistamiento">
+                <img src="{{ avistamiento.foto.url }}" alt="Foto del avistamiento de {{ avistamiento.ave.nombre_comun }}">
+                <figcaption>Foto aportada por la comunidad</figcaption>
+            </figure>
+        {% endif %}
+    </div>
+
+    <div class="detalle-acciones">
+        {% if user.is_authenticated %}
+            <form method="post" action="{% url 'avistamiento_validar' avistamiento.pk %}">
+                {% csrf_token %}
+                <button class="boton-secundario" type="submit">
+                    {% if validado %}✓ Validado por ti (quitar){% else %}✓ Validar información{% endif %}
+                </button>
+            </form>
+            <p class="ayuda">{{ total_validaciones }} validación(es) de la comunidad</p>
+        {% else %}
+            <p><a href="{% url 'entrar' %}?siguiente={{ request.path }}">Inicia sesión</a> para comentar y validar.</p>
+        {% endif %}
+        {% if user.is_staff or user.is_superuser %}
+            <form method="post" action="{% url 'avistamiento_aprobar' avistamiento.pk %}">
+                {% csrf_token %}
+                <input type="hidden" name="siguiente" value="{{ request.path }}">
+                <button class="boton-secundario" type="submit">
+                    {% if avistamiento.aprobado %}Quitar aprobación{% else %}Aprobar avistamiento{% endif %}
+                </button>
+            </form>
+            <form method="post" action="{% url 'avistamiento_eliminar' avistamiento.pk %}"
+                  onsubmit="return confirm('¿Eliminar este avistamiento?');">
+                {% csrf_token %}
+                <input type="hidden" name="siguiente" value="{% url 'avistamientos' %}">
+                <button class="boton-peligro" type="submit">Eliminar registro</button>
+            </form>
+        {% endif %}
+    </div>
+</section>
+
+<section class="panel comentarios">
+    <h2>Comentarios ({{ comentarios.count }})</h2>
+    {% for comentario in comentarios %}
+        <article class="comentario">
+            <p class="comentario-autor"><strong>{{ comentario.usuario }}</strong> · {{ comentario.creado_en|date:"d M Y H:i" }}</p>
+            <p>{{ comentario.texto|linebreaksbr }}</p>
+        </article>
+    {% empty %}
+        <p class="ayuda">Sé la primera persona en comentar este avistamiento.</p>
+    {% endfor %}
+
+    {% if user.is_authenticated %}
+        <form method="post" action="{% url 'avistamiento_comentar' avistamiento.pk %}" class="formulario-comentario">
+            {% csrf_token %}
+            {{ formulario_comentario.texto }}
+            {% if formulario_comentario.texto.errors %}<div class="errores">{{ formulario_comentario.texto.errors }}</div>{% endif %}
+            <button class="boton-secundario" type="submit">Publicar comentario</button>
+        </form>
+    {% endif %}
+</section>
+{% endblock %}

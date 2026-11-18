@@ -24,6 +24,7 @@
             <span>Identificar un ave por su canto</span>
         </a>
         <p class="portada-nota">Usa el micrófono · gratis · hecho para el colegio y la familia</p>
+        <p class="frase-inspiradora">«{{ frase_inspiradora }}»</p>
     </div>
     <div class="portada-arte" aria-hidden="true">
         <img src="{% static 'img/logo.png' %}" alt="" width="230" height="230">
@@ -63,6 +64,40 @@
     <div class="carrusel-puntos" id="carrusel-puntos" role="tablist" aria-label="Ir a un ave del carrusel"></div>
 </section>
 
+<section class="seccion seccion-destacados">
+    <h2 class="seccion-titulo">Nuestra comunidad en números</h2>
+    <p class="seccion-sub">Cada registro aporta a la conservación de {{ nombre_parque }}.</p>
+    <div class="destacados">
+        <article class="dato-destacado">
+            <strong>{{ total_avistamientos }}</strong>
+            <span>avistamientos registrados</span>
+        </article>
+        <article class="dato-destacado">
+            <strong>{{ total_especies }}</strong>
+            <span>especies observadas</span>
+        </article>
+        <article class="dato-destacado">
+            <strong>{{ total_observadores }}</strong>
+            <span>observadores activos</span>
+        </article>
+        <article class="dato-destacado dato-destacado--principal">
+            <strong>{{ especie_mas_avistada.total|default:0 }}</strong>
+            <span>
+                {% if especie_mas_avistada %}
+                    más avistada: {{ especie_mas_avistada.ave__nombre_comun }}
+                {% else %}
+                    avistamientos de la especie más vista
+                {% endif %}
+            </span>
+        </article>
+    </div>
+    <div class="enlaces-modulos">
+        <a href="{% url 'mapa' %}">🗺️ Ver el mapa de avistamientos</a>
+        <a href="{% url 'estadisticas' %}">📊 Ver estadísticas completas</a>
+        <a href="{% url 'avistamiento_nuevo' %}">📝 Registrar un avistamiento</a>
+    </div>
+</section>
+
 <section class="seccion seccion-vision" id="vision">
     <h2 class="seccion-titulo">Nuestro proyecto</h2>
     <p class="seccion-sub">Por qué nació BirdWatch y hacia dónde vamos.</p>
@@ -93,6 +128,28 @@
             </p>
         </article>
     </div>
+</section>
+
+<section class="seccion seccion-noticias">
+    <h2 class="seccion-titulo">Noticias y novedades</h2>
+    <p class="seccion-sub">Lo último del proyecto y del parque.</p>
+    <div class="tarjetas-noticias">
+        {% for noticia in noticias %}
+        <article class="tarjeta-noticia">
+            <p class="noticia-fecha">{{ noticia.publicada_en|date:"d M Y" }}</p>
+            <h3>{{ noticia.titulo }}</h3>
+            <p>{{ noticia.resumen|truncatechars:140 }}</p>
+            <a href="{% url 'noticia_detalle' noticia.slug %}">Leer más →</a>
+        </article>
+        {% empty %}
+        <article class="tarjeta-noticia">
+            <h3>¡Pronto nuevas noticias!</h3>
+            <p>Estamos preparando las primeras novedades del proyecto y del parque.</p>
+            <a href="{% url 'noticias' %}">Ver todas las noticias →</a>
+        </article>
+        {% endfor %}
+    </div>
+    <p class="centro"><a class="boton-secundario" href="{% url 'noticias' %}">Todas las noticias</a></p>
 </section>
 
 <section class="llamado-final">

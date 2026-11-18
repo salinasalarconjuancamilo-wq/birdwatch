@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block titulo %}Registrar avistamiento{% endblock %}
+
+{% block contenido %}
+<section class="cabecera-pagina">
+    <p class="portada-etiqueta">Comunidad BirdWatch</p>
+    <h1>Registrar un avistamiento</h1>
+    <p>{{ frase_inspiradora }}</p>
+</section>
+
+<section class="panel formulario-panel">
+    <form method="post" enctype="multipart/form-data" class="formulario-comunidad">
+        {% csrf_token %}
+        {% if formulario.non_field_errors %}<div class="errores">{{ formulario.non_field_errors }}</div>{% endif %}
+        {% for campo in formulario %}
+            <div class="campo">
+                {{ campo.label_tag }}
+                {{ campo }}
+                {% if campo.help_text %}<small class="ayuda">{{ campo.help_text }}</small>{% endif %}
+                {% if campo.errors %}<div class="errores">{{ campo.errors }}</div>{% endif %}
+            </div>
+        {% endfor %}
+        <div class="acciones-formulario">
+            <button class="boton-ave" type="submit">Guardar avistamiento</button>
+            <a class="boton-secundario" href="{% url 'avistamientos' %}">Cancelar</a>
+        </div>
+    </form>
+</section>
+{% endblock %}

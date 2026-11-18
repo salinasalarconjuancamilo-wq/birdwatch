@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% block titulo %}Estadísticas y destacados{% endblock %}
+
+{% block contenido %}
+<section class="cabecera-pagina">
+    <p class="portada-etiqueta">Datos de la comunidad</p>
+    <h1>Estadísticas y destacados</h1>
+    <p>{{ frase_inspiradora }}</p>
+</section>
+
+<section class="destacados">
+    <article class="dato-destacado"><strong>{{ total_avistamientos }}</strong><span>avistamientos aprobados</span></article>
+    <article class="dato-destacado"><strong>{{ total_especies }}</strong><span>especies registradas</span></article>
+    <article class="dato-destacado"><strong>{{ total_observadores }}</strong><span>observadores</span></article>
+    <article class="dato-destacado"><strong>{{ con_coordenadas }}</strong><span>avistamientos en el mapa</span></article>
+</section>
+
+<section class="panel">
+    <h2>Especie más avistada</h2>
+    {% if especie_mas_avistada %}
+        <p class="destacado-grande">
+            {{ especie_mas_avistada.ave__nombre_comun }}
+            <small>{{ especie_mas_avistada.ave__nombre_cientifico }}</small>
+        </p>
+        <p>Con <strong>{{ especie_mas_avistada.total }}</strong> avistamientos registrados por la comunidad.</p>
+    {% else %}
+        <p class="vacio">Aún no hay datos suficientes.</p>
+    {% endif %}
+</section>
+
+<div class="rejilla-dos">
+    <section class="panel">
+        <h2>Top 10 de aves registradas</h2>
+        <ol class="ranking">
+            {% for fila in top10 %}
+                <li><span>{{ fila.ave__nombre_comun }}</span><strong>{{ fila.total }}</strong></li>
+            {% empty %}
+                <li class="vacio">Sin datos todavía.</li>
+            {% endfor %}
+        </ol>
+    </section>
+
+    <section class="panel">
+        <h2>Más vistadas / observadas</h2>
+        <p class="ayuda">Ordenadas por número total de individuos reportados.</p>
+        <ol class="ranking">
+            {% for fila in mas_observadas %}
+                <li><span>{{ fila.ave__nombre_comun }}</span><strong>{{ fila.total }} aves</strong></li>
+            {% empty %}
+                <li class="vacio">Sin datos todavía.</li>
+            {% endfor %}
+        </ol>
+    </section>
+</div>
+
+<section class="panel">
+    <h2>Especies en cada zona del parque</h2>
+    <table class="tabla-datos">
+        <thead>
+            <tr><th>Zona</th><th>Avistamientos</th><th>Especies distintas</th></tr>
+        </thead>
+        <tbody>
+            {% for fila in por_zona %}
+                <tr>
+                    <td>{{ fila.zona }}</td>
+                    <td>{{ fila.total }}</td>
+                    <td>{{ fila.especies }}</td>
+                </tr>
+            {% empty %}
+                <tr><td colspan="3" class="vacio">Sin datos por zona todavía.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</section>
+
+<section class="panel">
+    <h2>★ Casos de avistamientos especiales</h2>
+    <p class="ayuda">Especies raras, anidación, crianza o conductas destacables.</p>
+    <div class="tarjetas-noticias">
+        {% for avistamiento in casos_especiales %}
+            <article class="tarjeta-noticia">
+                <h3><a href="{% url 'avistamiento_detalle' avistamiento.pk %}">{{ avistamiento.ave.nombre_comun }}</a></h3>
+                <p>{{ avistamiento.lugar }} · {{ avistamiento.fecha|date:"d M Y" }}</p>
+                <p>{{ avistamiento.notas|truncatechars:120 }}</p>
+            </article>
+        {% empty %}
+            <p class="vacio">Todavía no se han reportado casos especiales.</p>
+        {% endfor %}
+    </div>
+</section>
+
+<section class="panel parque-info">
+    <h2>Sobre {{ nombre_parque }}</h2>
+    <p>
+        El parque protege un fragmento de <strong>bosque de niebla andino</strong> en el municipio
+        de San Antonio del Tequendama, Cundinamarca. Su mezcla de cañón, humedal, senderos y
+        zonas abiertas lo convierte en un lugar privilegiado para observar colibríes, tucanes,
+        pavas andinas y aves cantoras.
+    </p>
+    <p>
+        Cada observación registrada ayuda a conocer mejor la biodiversidad local y a promover
+        la conservación del hábitat. Aliado del proyecto: <strong>{{ aliado }}</strong>.
+    </p>
+</section>
+{% endblock %}

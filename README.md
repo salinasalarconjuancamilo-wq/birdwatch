@@ -1,261 +1,270 @@
 # BirdWatch · San Antonio del Tequendama
 
+> **«Cada ave cuenta, cada observación importa»**
+
 Aplicativo web **híbrido (celular y computador)** para identificar las aves de
-San Antonio del Tequendama (Cundinamarca, Colombia) **por su canto**, usando la
-inteligencia artificial **BirdNET** del Laboratorio de Ornitología de Cornell.
+San Antonio del Tequendama (Cundinamarca, Colombia) **por su canto** y construir
+una **comunidad de observación ciudadana**.
 
-## Qué incluye
+- Identificación con **BirdNET** (Laboratorio de Ornitología de Cornell).
+- Registro de **avistamientos** con ubicación, especie, foto y notas.
+- **Mapa interactivo** con **Leaflet + OpenStreetMap** (gratis, ligero, sin APIs de pago).
+- **Noticias**, **estadísticas**, **centro de ayuda**, **contacto** y **código de conducta**.
+- Aliado: **6:B Colombia — red de observadores**.
 
-- **Inicio**: carrusel con las 9 aves representativas del municipio (cóndor
-  andino, colibríes, tucán piquiplano, tororoi, candelita y pava andina) y las
-  secciones de **visión y misión** del proyecto.
-- **Botón con el logo del ave** (un colibrí) que abre la página de
-  identificación: pide permiso del micrófono, graba entre 3 y 15 segundos y
-  envía el audio a BirdNET.
-- **Identifica cualquier ave que conozca la IA BirdNET** (más de 6.000
-  especies del mundo). Ver la sección
-  ["Especies identificables"](#especies-identificables) para restringir o
-  filtrar por región.
-- **Detecciones guardadas en PostgreSQL** con su nombre en español,
-  nombre científico y porcentaje de confianza; se consultan en "Mis últimas
-  detecciones" y en el administrador de Django (`/admin/`).
-- **Aplicación web progresiva (PWA)**: se puede instalar en el celular desde
-  el navegador.
-- Interfaz en **español**, con paleta **verde de bosque andino de niebla**.
+---
 
-## Requisitos del equipo (una sola vez)
+## 1. Roles
 
-- **Python 3.12 o superior** en el sistema.
-- **PostgreSQL** instalado como servicio de Windows (cualquier versión
-  reciente) con la base de datos del proyecto:
+| Rol | Qué puede hacer |
+|-----|-----------------|
+| **Acceso público** | Ver la portada, noticias, avistamientos aprobados, mapa, estadísticas, ayuda y conducta. No requiere login. |
+| **Usuario** | Todo lo anterior + registrar avistamientos, comentar y validar información. |
+| **Administrador** (`is_staff`/`is_superuser`) | Todo lo anterior + aprobar contenido, controlar registros, gestionar usuarios y noticias desde `/admin/`. |
+
+El usuario inicial es `user` / `1234` (superadministrador).
+
+---
+
+## 2. Módulos
+
+| Módulo | Ruta | Descripción |
+|--------|------|-------------|
+| Portada | `/` | Carrusel de aves, destacados en vivo y últimas noticias. |
+| Portada alterna | `/portada/` | Vista histórica de la app `aves` (se conserva por compatibilidad). |
+| Identificador | `/identificar/` | Micrófono → WAV → BirdNET → especies con % de confianza. |
+| Avistamientos | `/avistamientos/` | Listado con filtros por zona, especie y texto. |
+| Registrar | `/avistamientos/nuevo/` | Formulario sencillo con especie, fecha, lugar, zona, coordenadas, foto y notas. |
+| Ficha | `/avistamientos/<id>/` | Detalle, comentarios y validaciones. |
+| Por aprobar | `/avistamientos/pendientes/` | Cola de revisión del administrador. |
+| Mapa | `/mapa/` | Leaflet + OpenStreetMap con los avistamientos georreferenciados. |
+| Datos del mapa | `/mapa/datos/` | JSON con los marcadores (útil para integraciones). |
+| Estadísticas | `/estadisticas/` | Especie más avistada, Top 10, más observadas, especies por zona, casos especiales e info del parque. |
+| Noticias | `/noticias/` | Novedades dinámicas del proyecto y del parque. |
+| Ayuda | `/ayuda/` | Preguntas frecuentes + guía para identificar aves. |
+| Contacto | `/contacto/` | Formulario de mensajes; los guarda en la base de datos. |
+| Conducta | `/conducta/` | Normas para respetar a las aves y su hábitat. |
+| Carrusel | `/carrusel/` | Panel del superadministrador para editar la portada. |
+| Admin | `/admin/` | Usuarios, contenido y registros. |
+
+---
+
+## 3. Requisitos del equipo (una sola vez)
+
+- **Python 3.12 o superior**.
+- **PostgreSQL** opcional: con `DB_ENGINE=sqlite` no se necesita nada más.
+  Si se usa PostgreSQL (servicio de Windows, puerto 5432):
 
   ```sql
   CREATE ROLE birdwatch LOGIN PASSWORD 'birdwatch';
   CREATE DATABASE birdwatch OWNER birdwatch;
   ```
 
-- Preparar el entorno virtual del proyecto (descarga ~600 MB de TensorFlow,
-  tarda varios minutos):
+- Entorno virtual e dependencias:
 
   ```
-  python -m venv .venv
+  python -m venv .venv --system-site-packages
   .venv\Scripts\python.exe -m pip install -r requirements.txt
   ```
 
-  Luego crear las tablas y cargar los datos iniciales:
+- Tablas y datos de ejemplo:
 
   ```
+  set DB_ENGINE=sqlite
   .venv\Scripts\python.exe manage.py migrate
   .venv\Scripts\python.exe manage.py sembrar
   .venv\Scripts\python.exe manage.py loaddata aves/fixtures/datos_iniciales.json
+  .venv\Scripts\python.exe manage.py sembrar_comunidad
   ```
 
-  El comando `sembrar` crea el superusuario (`user` / `1234`) y las 9 aves.
+  - `sembrar`: superusuario (`user` / `1234`) y 9 aves del carrusel.
+  - `sembrar_comunidad`: especies, avistamientos con coordenadas, 4 noticias y 6 preguntas frecuentes. Es **idempotente**.
 
-## Cómo se usa
+---
 
-### 1. Iniciar
+## 4. Cómo se usa
 
-Haz doble clic en **`INICIAR-BIRDWATCH.bat`**. El archivo:
+### 4.1 Iniciar
 
-1. Verifica el **PostgreSQL del equipo** (servicio del sistema, puerto 5432).
-2. Arranca el **analizador BirdNET** en el puerto 8080.
-3. Arranca la **aplicación web Django** en el puerto 3000.
-4. Abre el navegador en <http://localhost:3000>.
+- **Con PostgreSQL**: doble clic en **`INICIAR-BIRDWATCH.bat`**.
+- **Sin PostgreSQL**: doble clic en **`INICIAR-LOCAL-SQLITE.bat`** (usa `DB_ENGINE=sqlite`).
 
-> La primera vez, BirdNET tarda unos 15 segundos en cargar el modelo (224 MB).
+Ambos dejan la web en <http://localhost:3000>. El analizador BirdNET arranca en el
+puerto 8080. La primera vez tarda unos 15 segundos en cargar el modelo (224 MB).
 
-### 2. Entrar
-
-- **Usuario**: `user`
-- **Contraseña**: `1234`
-
-### 3. Identificar un ave
-
-1. En la portada pulsa el botón grande **"Identificar un ave por su canto"**
-   (el del colibrí).
-2. En la página del identificador pulsa **Grabar** y acepta el permiso del
-   micrófono.
-3. Acerca el equipo al canto del ave y espera entre 3 y 15 segundos; pulsa
-   **Detener** (o espera a que se detenga solo a los 15 segundos).
-4. En segundos aparecen las especies más probables con su porcentaje de
-   confianza, y la detección queda guardada en la base de datos.
-
-### 4. Detener
-
-Haz doble clic en **`DETENER-BIRDWATCH.bat`** (detiene la web y BirdNET; el
-servicio PostgreSQL del equipo sigue corriendo, porque es compartido) o cierra
-las ventanas minimizadas "BirdNET" y "Django BirdWatch".
-
-## Uso desde el celular
-
-1. En el celular, conectado a la **misma red Wi-Fi**, abre
-   `http://IP-DEL-COMPUTADOR:3000` (la IP se ve con `ipconfig`).
-2. **Importante**: los navegadores solo permiten el micrófono en **HTTPS** o
-   en `localhost`. Para grabar desde el celular hay que servir la aplicación
-   con HTTPS. En el computador, con `http://localhost:3000` funciona sin
-   problema.
-3. El diseño es responsivo: el carrusel, el login y el identificador se
-   adaptan a la pantalla del teléfono.
-
-## Estructura del proyecto
-
-```
-INICIAR-BIRDWATCH.bat      Arranca todo (BirdNET + web)
-DETENER-BIRDWATCH.bat      Detiene los servicios de la app
-manage.py                  Utilidades de Django
-requirements.txt           Dependencias de Python del proyecto
-.venv/                     Entorno virtual (no se sube a git)
-birdwatch/                 Configuración del proyecto Django (settings, urls)
-core/                      Aplicación principal: modelos, vistas, formularios,
-                           cliente BirdNET, traducciones ES y datos de las aves
-aves/                      Catálogo de aves y registro de avistamientos
-                           (se administra en /admin/)
-plantillas/                Páginas HTML (base, inicio, login, identificar,
-                           carrusel de la portada)
-estaticos/                 CSS, JavaScript, manifest PWA, logo y fotos de aves
-servidor_birdnet.py        Servidor HTTP del analizador BirdNET (bottle)
-```
-
-## App `aves`: catálogo y avistamientos
-
-Conserva un **catálogo de aves** (nombre común y científico, familia, color,
-tamaño y foto) y el **registro de avistamientos** (ave, fecha, lugar, cantidad
-y notas). Se administra desde el panel de Django:
-
-1. Entra a <http://localhost:3000/admin/> con `user` / `1234`.
-2. En la sección **AVES** están **Aves** (catálogo) y **Avistamientos**.
-
-Sus datos iniciales viven en `aves/fixtures/datos_iniciales.json`.
-
-## Servicios y puertos
-
-| Servicio | Puerto | Descripción |
-|----------|--------|-------------|
-| Web Django | 3000 | Aplicación (todas las páginas) |
-| BirdNET | 8080 | Analizador de cantos (`servidor_birdnet.py`) |
-| PostgreSQL | 5432 | Base de datos `birdwatch` (servicio del equipo) |
-
-## Especies identificables
-
-Por decisión del proyecto, al principio la app solo identificaba al chinigüe
-(copetón) (*Zonotrichia capensis*). Ahora **no hay restricción**: la IA
-BirdNET puede devolver cualquiera de las ~6.500 especies que conoce en todo
-el mundo.
-
-Dos ajustes viven en `core/birdnet.py`:
-
-1. `ESPECIES_PERMITIDAS`: lista de etiquetas
-   `"NombreCientifico_NombreComunEnIngles"`. Con `[]` (vacía, valor actual)
-   no hay restricción. Para limitar la app a unas pocas aves, añade sus
-   etiquetas; por ejemplo:
-
-   ```python
-   ESPECIES_PERMITIDAS = [
-       "Zonotrichia capensis_Rufous-collared Sparrow",  # chinigüe (copetón)
-   ]
-   ```
-
-2. `FILTRAR_POR_REGION`: cuando es `True`, el análisis usa las coordenadas de
-   San Antonio del Tequendama (4.6267, -74.3300) y BirdNET solo considera las
-   ~480 especies de la región. Con `False` (valor actual) considera todas las
-   especies del mundo. El filtro regional evita confusiones con aves de otros
-   continentes, así que puede ser útil activarlo.
-
-Después de editar, reinicia la web con `DETENER-BIRDWATCH.bat` y
-`INICIAR-BIRDWATCH.bat`.
-
-### Voces humanas, ruido y umbral de confianza
-
-BirdNET asigna *alguna* probabilidad a cualquier sonido. Además de las aves,
-el modelo tiene clases que **no son aves**: `Human vocal`, `Human non-vocal`,
-`Human whistle`, `Dog`, `Engine`, `Noise`, `Siren`, `Power tools`,
-`Fireworks`, `Gun`, `Environmental` y dos grillos. Una voz
-humana puede puntuar alto (se han visto valores de 32% y hasta 72%), así que
-subir el umbral no basta.
-
-Por eso `core/birdnet.py` aplica **dos filtros**:
-
-1. `ETIQUETAS_NO_AVE`: conjunto con todas las clases que no son aves. Se
-   descartan **siempre**, sin importar su confianza. BirdWatch solo identifica
-   aves.
-2. `CONFIANZA_MINIMA = 0.20`: solo se muestran y se guardan las coincidencias
-   con al menos 20% de confianza (las aves reales suelen superar el 30%).
-
-Si sientes que se pierden aves reales, baja el umbral a `0.15`; si aparecen
-aves poco probables, súbelo a `0.25` o `0.30`. Para excluir otra clase, añade
-su nombre común a `ETIQUETAS_NO_AVE`.
-
-> Los nombres comunes llegan en inglés; `core/traducciones.py` traduce al
-> español las especies más conocidas de Colombia (se puede ampliar agregando
-> entradas al diccionario). Las que no estén muestran su nombre en inglés y
-> el nombre científico.
-
-## Administrar el carrusel de la portada
-
-Solo el **superadministrador** (`user` / `1234`) puede editar el carrusel.
-Al iniciar sesión aparece el enlace **«Carrusel»** en la cabecera, o se puede
-entrar directamente a <http://localhost:3000/carrusel/>.
-
-Desde ese panel se puede, sin tocar archivos ni código:
-
-- **Añadir un ave**: botón «+ Añadir ave». Se sube la foto desde el navegador
-  (JPG o PNG de hasta 10 MB); la app la endereza, la reduce a 1280 px y la
-  guarda optimizada en `estaticos/img/aves/`. Se piden nombre común, nombre
-  científico, descripción, posición y si se muestra o no.
-- **Editar** la ficha o cambiar la foto (si no se sube otra, se conserva).
-- **Ordenar** con las flechas ▲ ▼ (la posición también se puede escribir).
-- **Ocultar/Mostrar** un ave sin borrarla: no aparece en la portada pero se
-  conserva en el panel.
-- **Eliminar** un ave y su foto (con confirmación).
-
-Los cambios se ven al instante en la portada: no hay que reiniciar Django.
-
-> También se pueden gestionar desde el admin de Django
-> (<http://localhost:3000/admin/> → Aves), pero el panel «Carrusel» es la
-> forma recomendada porque permite subir la foto directamente.
+> Si el `.bat` no arranca en tu intérprete de comandos, ejecuta manualmente:
 >
-> La velocidad de rotación (6 s) y el tamaño de las tarjetas se ajustan en
-> `estaticos/js/carrusel.js` y `estaticos/css/estilos.css`.
+> ```
+> set DB_ENGINE=sqlite
+> .venv\Scripts\python.exe servidor_birdnet.py --host 127.0.0.1 --port 8080
+> .venv\Scripts\python.exe manage.py runserver 0.0.0.0:3000 --noreload
+> ```
 
-## Configuración avanzada
+### 4.2 Entrar
 
-Todo se puede cambiar con variables de entorno antes de iniciar:
+Usuario `user` · contraseña `1234`.
 
-- `DATABASE_URL`: cadena de conexión PostgreSQL, por ejemplo
-  `postgres://usuario:clave@servidor:5432/birdwatch`
-  (por defecto `postgres://birdwatch:birdwatch@localhost:5432/birdwatch`).
-- `BIRDNET_URL`: URL del analizador BirdNET (por defecto
-  `http://localhost:8080`).
-- `DJANGO_CSRF_ORIGINS`: orígenes adicionales confiables para el formulario
-  de análisis, separados por comas (útil al servir con HTTPS).
-- `DJANGO_SECRET_KEY` y `DJANGO_DEBUG=0`: para un despliegue real.
+### 4.3 Identificar un ave
 
-### Comandos útiles de Django
+1. Pulsa el botón **«Identificar un ave por su canto»** (o entra a `/identificar/`).
+2. Pulsa **Grabar** y acepta el permiso del micrófono.
+3. Acerca el equipo al canto y graba entre 3 y 15 segundos.
+4. Aparecen las especies probables con su confianza y se guarda la detección.
+
+BirdNET descarta voces humanas, motores e insectos y exige **≥ 20 % de confianza**.
+
+### 4.4 Participar en la comunidad
+
+1. Entra a **Avistamientos** → **Registrar avistamiento**.
+2. Elige la especie, la fecha, el lugar y la zona del parque.
+3. Añade coordenadas (opcional) para que aparezca en el **mapa**, y una foto.
+4. Un administrador aprueba el registro; después puede comentarse y validarse.
+
+### 4.5 Detener
+
+Doble clic en **`DETENER-BIRDWATCH.bat`** o cierra las ventanas "BirdNET" y "Django BirdWatch".
+
+---
+
+## 5. Desde el celular
+
+1. Conectado a la misma Wi-Fi, abre `http://IP-DEL-COMPUTADOR:3000` (`ipconfig`).
+2. El navegador solo permite el micrófono en **HTTPS** o en `localhost`; para grabar
+   desde el celular hay que servir con HTTPS.
+3. El diseño es responsivo: menú, carrusel, formularios, mapa y tablas se adaptan al teléfono.
+
+---
+
+## 6. Estructura del proyecto
 
 ```
+birdwatch/                 Configuración (settings, urls, context processors)
+  settings.py              Apps, BD (PostgreSQL/SQLite), idioma, MEDIA, redes
+  urls.py                  Todas las rutas del sitio
+  context_processors.py    Frase, aliado y redes en todas las plantillas
+core/                      Identificación por canto (BirdNET) y carrusel
+  birdnet.py               Cliente BirdNET, umbral 20 %, filtros anti-ruido
+  traducciones.py          Inglés → español
+  views.py / urls.py       Portada, login, identificar, analizar, carrusel
+  permisos.py              Decoradores de roles (Usuario / Administrador)
+  data/aves.json           Aves del carrusel
+aves/                      Catálogo y comunidad de avistamientos
+  models.py                Ave, Avistamiento, Comentario, Validación
+  forms.py / views.py / urls.py / admin.py
+  estadisticas.py          Cálculo centralizado de destacados y marcadores
+  management/commands/sembrar_comunidad.py
+  templates/aves/          Listado, formulario, ficha, mapa, estadísticas…
+contenido/                 Contenido dinámico
+  models.py                Noticia, PreguntaFrecuente, MensajeContacto
+  views.py / urls.py / forms.py / admin.py
+  templates/contenido/     Noticias, ayuda, contacto, conducta
+plantillas/                base.html, inicio.html, login, identificar, carrusel
+estaticos/
+  css/estilos.css          Diseño principal
+  css/comunidad.css        Estilos de los módulos de comunidad
+  js/mapa.js               Marcadores Leaflet desde JSON
+  js/identificar.js        Micrófono y envío de audio
+  js/carrusel.js           Carrusel de la portada
+  img/logo.png             Logo redondo
+servidor_birdnet.py        Servidor HTTP del analizador (bottle, puerto 8080)
+INICIAR-BIRDWATCH.bat      Arranque con PostgreSQL
+INICIAR-LOCAL-SQLITE.bat   Arranque sin PostgreSQL
+DETENER-BIRDWATCH.bat      Detención de servicios
+```
+
+---
+
+## 7. Mapa (Leaflet + OpenStreetMap)
+
+No hay que pagar nada ni registrar API keys:
+
+- CSS: `https://unpkg.com/leaflet@1.9.4/dist/leaflet.css`
+- JS: `https://unpkg.com/leaflet@1.9.4/dist/leaflet.js`
+- Teselas: `https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png`
+
+Los marcadores se generan en `aves/estadisticas.py::datos_mapa()` y se inyectan
+en la plantilla con `json_script`. Un avistamiento aparece en el mapa solo si está
+**aprobado** y tiene **latitud y longitud**. Los casos especiales se marcan con ★.
+
+---
+
+## 8. Identificación por canto (detalles)
+
+`ESPECIES_PERMITIDAS = []` → BirdNET identifica cualquier ave (~6.500 especies).
+Para limitarlo a unas pocas, edita `core/birdnet.py`:
+
+```python
+ESPECIES_PERMITIDAS = [
+    "Zonotrichia capensis_Rufous-collared Sparrow",  # chinigüe (copetón)
+]
+```
+
+`FILTRAR_POR_REGION = False` → se consideran todas las especies. Si se activa,
+BirdNET usa las coordenadas de San Antonio del Tequendama y reduce a ~480 especies.
+
+Filtros anti-falsos-positivos:
+
+1. `ETIQUETAS_NO_AVE`: descarta siempre humano, perro, motor, ruido, sirena, insectos, etc.
+2. `CONFIANZA_MINIMA = 0.20`: solo se muestran coincidencias ≥ 20 %.
+
+`core/traducciones.py` traduce al español las especies más comunes de Colombia.
+
+---
+
+## 9. Administrar el carrusel de la portada
+
+Solo el superadministrador. Entra a `/carrusel/` (enlace **Carrusel** en la cabecera).
+
+- **Añadir un ave** con foto (JPG/PNG ≤ 10 MB; se reduce a 1280 px).
+- **Editar**, **ordenar** (▲ ▼), **ocultar/mostrar** y **eliminar**.
+- Los cambios se ven al instante en `/`.
+
+También se puede gestionar desde `/admin/`, pero el panel Carrusel es el recomendado.
+
+---
+
+## 10. Configuración avanzada
+
+| Variable | Uso |
+|----------|-----|
+| `DB_ENGINE=sqlite` | Base local `db.sqlite3` (sin PostgreSQL). |
+| `DATABASE_URL` | Cadena PostgreSQL, p. ej. `postgres://usuario:clave@servidor:5432/birdwatch`. |
+| `BIRDNET_URL` | URL del analizador (por defecto `http://localhost:8080`). |
+| `DJANGO_CSRF_ORIGINS` | Orígenes adicionales para HTTPS. |
+| `DJANGO_SECRET_KEY`, `DJANGO_DEBUG=0` | Para un despliegue real. |
+
+Las redes sociales y la frase inspiradora se editan en un solo lugar:
+`birdwatch/settings.py` (`REDES_SOCIALES`, `FRASE_INSPIRADORA`, `ALIADO`).
+
+Comandos útiles:
+
+```
+.venv\Scripts\python.exe manage.py check
+.venv\Scripts\python.exe manage.py makemigrations
+.venv\Scripts\python.exe manage.py migrate
+.venv\Scripts\python.exe manage.py sembrar_comunidad
 .venv\Scripts\python.exe manage.py runserver 0.0.0.0:3000 --noreload
-.venv\Scripts\python.exe manage.py sembrar          (recarga las aves)
-.venv\Scripts\python.exe manage.py createsuperuser --username user
 ```
 
-## Notas técnicas
+---
 
-- El paquete `birdnet_analyzer` 2.4 de PyPI ya no incluye su módulo `server`;
-  por eso `servidor_birdnet.py` implementa la misma API (multipart
-  `audio`+`meta` → JSON de resultados) usando la biblioteca interna del
-  analizador.
-- El servidor BirdNET usa un solo hilo (la configuración global del analizador
-  no es segura entre hilos), igual que el servidor original.
-- Las grabaciones que el analizador conserva (si se pide `save` en el meta)
-  van a la carpeta temporal de Windows (`%TEMP%\birdwatch-subidas`).
+## 11. Notas técnicas
 
-## Créditos
+- `birdnet_analyzer` 2.4 ya no trae su módulo `server`; `servidor_birdnet.py`
+  reimplementa la API con `bottle`.
+- El servidor BirdNET usa un solo hilo (configuración global no segura entre hilos).
+- Las grabaciones del analizador van a `%TEMP%\birdwatch-subidas`.
+- Las fotos subidas van a `medios/avistamientos/` y `medios/noticias/` (configurable con `MEDIA_ROOT`).
+- Leaflet y OpenStreetMap se cargan por CDN; no hay dependencias de pago.
 
-- **BirdNET** y el modelo BirdNET GLOBAL 6K V2.4: Laboratorio de Ornitología
-  de Cornell e Institut für Vogelforschung (licencia CC BY-NC-SA 4.0).
+---
+
+## 12. Créditos
+
+- **BirdNET** y el modelo GLOBAL 6K V2.4: Cornell Lab of Ornithology e
+  Institut für Vogelforschung (CC BY-NC-SA 4.0).
 - **Fotos de las aves**: Wikimedia Commons — Michael Gäbler (CC BY 3.0),
   Joseph C. Boone (CC BY-SA 4.0), Charles J. Sharp (CC BY-SA 4.0), Mike's
   Birds (CC BY-SA 2.0) y Félix Uribe (CC BY 2.0).
-- **PostgreSQL**, **Django**, **Python**, **bottle**: software libre de sus
-  respectivos autores.
+- **OpenStreetMap** y sus colaboradores (ODbL); **Leaflet** (BSD 2-Clause).
+- **Django**, **Python**, **bottle**, **Pillow**, **PostgreSQL**: software libre.

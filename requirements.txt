@@ -1,4 +1,6 @@
-Django>=5.2,<6
+Django>=5.2,<7
 psycopg[binary]>=3.2
 birdnet_analyzer[server]==2.4.0
 msvc-runtime>=14.40
+pillow>=10.0
+bottle>=0.12

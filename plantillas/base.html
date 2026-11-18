@@ -4,12 +4,13 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="BirdWatch · Identifica las aves de San Antonio del Tequendama (Cundinamarca, Colombia) por su canto con la inteligencia artificial de BirdNET.">
+    <meta name="description" content="BirdWatch · Comunidad de observación de aves de San Antonio del Tequendama (Cundinamarca, Colombia). Registra avistamientos, explora el mapa y aprende a identificar aves por su canto.">
     <meta name="theme-color" content="#1b4332">
     <link rel="icon" type="image/png" href="{% static 'img/logo.png' %}">
     <link rel="apple-touch-icon" href="{% static 'img/logo.png' %}">
     <link rel="manifest" href="{% static 'manifest.webmanifest' %}">
     <link rel="stylesheet" href="{% static 'css/estilos.css' %}">
+    <link rel="stylesheet" href="{% static 'css/comunidad.css' %}">
     <title>{% block titulo %}Inicio{% endblock %} · BirdWatch</title>
     {% block estilos %}{% endblock %}
 </head>
@@ -23,12 +24,20 @@
     </a>
     <nav class="navegacion" aria-label="Navegación principal">
         <a class="navegacion-enlace" href="{% url 'inicio' %}">Inicio</a>
-        <a class="navegacion-enlace" href="{% url 'inicio' %}#vision">Visión y misión</a>
+        <a class="navegacion-enlace" href="{% url 'avistamientos' %}">Avistamientos</a>
+        <a class="navegacion-enlace" href="{% url 'mapa' %}">Mapa</a>
+        <a class="navegacion-enlace" href="{% url 'estadisticas' %}">Estadísticas</a>
+        <a class="navegacion-enlace" href="{% url 'noticias' %}">Noticias</a>
+        <a class="navegacion-enlace" href="{% url 'ayuda' %}">Ayuda</a>
+
         {% if user.is_authenticated %}
-            {% if user.is_superuser %}
+            <a class="navegacion-enlace" href="{% url 'avistamiento_nuevo' %}">Registrar ave</a>
+            <a class="navegacion-enlace" href="{% url 'identificar' %}">Identificar</a>
+            {% if user.is_staff or user.is_superuser %}
+                <a class="navegacion-enlace" href="{% url 'avistamientos_pendientes' %}">Por aprobar</a>
                 <a class="navegacion-enlace" href="{% url 'carrusel_admin' %}">Carrusel</a>
+                <a class="navegacion-enlace" href="{% url 'admin:index' %}">Admin</a>
             {% endif %}
-            <a class="navegacion-enlace enlace-activo" href="{% url 'identificar' %}">Identificar</a>
             <form class="formulario-salir" method="post" action="{% url 'salir' %}">
                 {% csrf_token %}
                 <button class="navegacion-enlace boton-salir" type="submit" title="Cerrar sesión">Salir ({{ user.username }})</button>
@@ -55,10 +64,26 @@
     <div class="pie-contenido">
         <img class="pie-logo" src="{% static 'img/logo.png' %}" alt="Logotipo de BirdWatch" width="56" height="56">
         <div class="pie-texto">
-            <p class="pie-nombre">BirdWatch · San Antonio del Tequendama, Cundinamarca</p>
+            <p class="pie-frase">«{{ frase_inspiradora }}»</p>
+            <p class="pie-nombre">{{ nombre_parque }} · Cundinamarca, Colombia</p>
             <p>
-                Identificación de aves por su canto con <strong>BirdNET</strong>
-                (Laboratorio de Ornitología de Cornell) y detecciones guardadas en PostgreSQL.
+                Comunidad de avistamiento, identificación por canto con <strong>BirdNET</strong>
+                y conservación del bosque de niebla. Mapa con <strong>Leaflet + OpenStreetMap</strong>.
+            </p>
+            <p class="pie-aliado">Aliado: <strong>{{ aliado }}</strong></p>
+            <p class="pie-enlaces">
+                <a href="{% url 'conducta' %}">Código de conducta</a> ·
+                <a href="{% url 'ayuda' %}">Centro de ayuda</a> ·
+                <a href="{% url 'contacto' %}">Contacto</a>
+            </p>
+            <p class="pie-redes">
+                {% for red in redes_sociales %}
+                    <a href="{{ red.url }}" target="_blank" rel="noopener noreferrer"
+                       title="{{ red.nombre }}" aria-label="{{ red.nombre }}">
+                        <span class="red-icono" aria-hidden="true">{{ red.icono }}</span>
+                        <span>{{ red.nombre }}</span>
+                    </a>
+                {% endfor %}
             </p>
             {% block creditos %}
             <p class="pie-creditos">

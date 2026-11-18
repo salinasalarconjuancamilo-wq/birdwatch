@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block titulo %}Noticias y novedades{% endblock %}
+
+{% block contenido %}
+<section class="cabecera-pagina">
+    <p class="portada-etiqueta">Novedades del proyecto y del parque</p>
+    <h1>Noticias</h1>
+    <p>Infórmate sobre las aves, la conservación y lo que pasa en {{ nombre_parque }}.</p>
+</section>
+
+<section class="tarjetas-noticias tarjetas-noticias--grandes">
+    {% for noticia in noticias %}
+        <article class="tarjeta-noticia">
+            {% if noticia.imagen %}
+                <img class="noticia-imagen" src="{{ noticia.imagen.url }}" alt="{{ noticia.titulo }}">
+            {% endif %}
+            <p class="noticia-fecha">{{ noticia.publicada_en|date:"d M Y" }}{% if noticia.destacada %} · Destacada{% endif %}</p>
+            <h2><a href="{% url 'noticia_detalle' noticia.slug %}">{{ noticia.titulo }}</a></h2>
+            <p>{{ noticia.resumen|default:noticia.contenido|truncatechars:220 }}</p>
+            <a href="{% url 'noticia_detalle' noticia.slug %}">Leer noticia completa →</a>
+        </article>
+    {% empty %}
+        <p class="vacio">Aún no hay noticias publicadas. ¡Vuelve pronto!</p>
+    {% endfor %}
+</section>
+{% endblock %}

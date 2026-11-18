@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block titulo %}Centro de ayuda{% endblock %}
+
+{% block contenido %}
+<section class="cabecera-pagina">
+    <p class="portada-etiqueta">Centro de ayuda</p>
+    <h1>¿En qué podemos ayudarte?</h1>
+    <p>Respuestas rápidas y una guía para identificar aves como un observador principiante.</p>
+</section>
+
+<section class="panel">
+    <h2>Preguntas frecuentes</h2>
+    {% for pregunta in preguntas %}
+        <details class="faq">
+            <summary>{{ pregunta.pregunta }}</summary>
+            <p>{{ pregunta.respuesta|linebreaksbr }}</p>
+        </details>
+    {% empty %}
+        <p class="vacio">Todavía no hay preguntas frecuentes.</p>
+    {% endfor %}
+</section>
+
+<section class="panel">
+    <h2>Guía para identificar aves</h2>
+    <div class="rejilla-dos">
+        <article class="guia-paso">
+            <h3>1. Por el canto</h3>
+            <p>
+                Graba entre 3 y 15 segundos con el micrófono y usa el
+                <a href="{% url 'identificar' %}">identificador BirdWatch</a>. El modelo descarta
+                voces humanas y ruidos, y solo muestra coincidencias con al menos 20 % de confianza.
+                Confirma siempre con la imagen o el comportamiento.
+            </p>
+        </article>
+        <article class="guia-paso">
+            <h3>2. Por el plumaje</h3>
+            <p>
+                Fíjate en el color general, las marcas de la cabeza y las alas, la forma del pico
+                y el tamaño. Un colibrí diminuto y un tucán de pico amarillo son inconfundibles;
+                las reinitas pequeñas requieren más atención.
+            </p>
+        </article>
+        <article class="guia-paso">
+            <h3>3. Por el comportamiento</h3>
+            <p>
+                ¿Busca insectos entre las hojas, liba flores, sigue un grupo o canta desde una
+                rama alta? Cada conducta es una pista. Anótala en el campo <em>notas</em> al registrar.
+            </p>
+        </article>
+        <article class="guia-paso">
+            <h3>4. Por el lugar y la hora</h3>
+            <p>
+                El bosque de niebla, el humedal y los jardines albergan especies distintas.
+                Registra la zona y las coordenadas: así tu avistamiento aparecerá en el
+                <a href="{% url 'mapa' %}">mapa</a> y ayudará a las estadísticas.
+            </p>
+        </article>
+    </div>
+</section>
+
+<section class="panel">
+    <h2>Reglas de oro</h2>
+    <ul class="lista-sencilla">
+        <li>Observa sin acercarte demasiado: usa binoculares o zoom.</li>
+        <li>No uses grabaciones para atraer aves en temporada de crianza.</li>
+        <li>No alimentes a las aves silvestres ni tomes sus nidos.</li>
+        <li>Registra solo lo que realmente viste o escuchaste.</li>
+    </ul>
+    <p>Lee también nuestro <a href="{% url 'conducta' %}">código de conducta</a>.</p>
+</section>
+{% endblock %}

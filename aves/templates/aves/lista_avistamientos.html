@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block titulo %}Avistamientos{% endblock %}
+
+{% block contenido %}
+<section class="cabecera-pagina">
+    <p class="portada-etiqueta">Comunidad BirdWatch</p>
+    <h1>Avistamientos registrados</h1>
+    <p>Explora las observaciones de la comunidad en {{ nombre_parque }}.</p>
+    <div class="acciones-pagina">
+        {% if user.is_authenticated %}
+            <a class="boton-ave" href="{% url 'avistamiento_nuevo' %}">＋ Registrar avistamiento</a>
+        {% else %}
+            <a class="boton-secundario" href="{% url 'entrar' %}?siguiente=/avistamientos/nuevo/">Inicia sesión para registrar</a>
+        {% endif %}
+        {% if user.is_staff or user.is_superuser %}
+            <a class="boton-secundario" href="{% url 'avistamientos_pendientes' %}">
+                Por aprobar{% if pendientes %} ({{ pendientes }}){% endif %}
+            </a>
+        {% endif %}
+    </div>
+</section>
+
+<section class="panel">
+    <form class="filtros" method="get">
+        <label>
+            Buscar
+            <input type="text" name="q" value="{{ filtros.q }}" placeholder="Especie, lugar o nota">
+        </label>
+        <label>
+            Zona
+            <select name="zona">
+                <option value="">Todas las zonas</option>
+                {% for valor, texto in zonas %}
+                    <option value="{{ valor }}" {% if filtros.zona == valor %}selected{% endif %}>{{ texto }}</option>
+                {% endfor %}
+            </select>
+        </label>
+        <label>
+            Especie
+            <select name="especie">
+                <option value="">Todas las especies</option>
+                {% for ave in especies %}
+                    <option value="{{ ave.id }}" {% if filtros.especie == ave.id|stringformat:'s' %}selected{% endif %}>{{ ave.nombre_comun }}</option>
+                {% endfor %}
+            </select>
+        </label>
+        <button class="boton-secundario" type="submit">Filtrar</button>
+        <a class="boton-secundario" href="{% url 'avistamientos' %}">Limpiar</a>
+    </form>
+</section>
+
+<section class="lista-avistamientos">
+    {% for avistamiento in avistamientos %}
+        <article class="tarjeta-avistamiento {% if not avistamiento.aprobado %}sin-publicar{% endif %}">
+            <div class="avistamiento-cabecera">
+                <h2><a href="{% url 'avistamiento_detalle' avistamiento.pk %}">{{ avistamiento.ave.nombre_comun }}</a></h2>
+                <span class="etiqueta">{{ avistamiento.ave.nombre_cientifico }}</span>
+            </div>
+            <p class="avistamiento-meta">
+                📍 {{ avistamiento.lugar }}
+                {% if avistamiento.zona %} · {{ avistamiento.get_zona_display }}{% endif %}
+                · 📅 {{ avistamiento.fecha|date:"d M Y" }}
+                · 🐦 {{ avistamiento.cantidad }}
+            </p>
+            {% if avistamiento.caso_especial %}<p class="etiqueta especial">★ Caso especial</p>{% endif %}
+            {% if not avistamiento.aprobado %}<p class="etiqueta pendiente">Pendiente de aprobación</p>{% endif %}
+            {% if avistamiento.notas %}<p>{{ avistamiento.notas|truncatechars:180 }}</p>{% endif %}
+            <p class="avistamiento-pie">
+                Por {{ avistamiento.usuario|default:"la comunidad" }} ·
+                💬 {{ avistamiento.comentarios.count }} ·
+                ✓ {{ avistamiento.validaciones.count }}
+                {% if avistamiento.tiene_coordenadas %} · <a href="{% url 'mapa' %}">ver en el mapa</a>{% endif %}
+            </p>
+        </article>
+    {% empty %}
+        <p class="vacio">Todavía no hay avistamientos con estos filtros. ¡Sé la primera persona en registrar uno!</p>
+    {% endfor %}
+</section>
+{% endblock %}

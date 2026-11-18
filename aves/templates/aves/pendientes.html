@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block titulo %}Contenido por aprobar{% endblock %}
+
+{% block contenido %}
+<section class="cabecera-pagina">
+    <p class="portada-etiqueta">Panel del administrador</p>
+    <h1>Avistamientos por aprobar</h1>
+    <p>Revisa y aprueba el contenido registrado por la comunidad.</p>
+</section>
+
+<section class="panel">
+    {% for avistamiento in pendientes %}
+        <article class="fila-pendiente">
+            <div>
+                <h2><a href="{% url 'avistamiento_detalle' avistamiento.pk %}">{{ avistamiento.ave.nombre_comun }}</a></h2>
+                <p>{{ avistamiento.lugar }} · {{ avistamiento.fecha|date:"d M Y" }} · por {{ avistamiento.usuario|default:"la comunidad" }}</p>
+            </div>
+            <form method="post" action="{% url 'avistamiento_aprobar' avistamiento.pk %}">
+                {% csrf_token %}
+                <button class="boton-ave" type="submit">Aprobar</button>
+            </form>
+        </article>
+    {% empty %}
+        <p class="vacio">Todo está al día: no hay avistamientos pendientes de aprobación.</p>
+    {% endfor %}
+</section>
+{% endblock %}

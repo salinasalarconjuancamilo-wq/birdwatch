@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block titulo %}{{ noticia.titulo }}{% endblock %}
+
+{% block contenido %}
+<article class="panel articulo-noticia">
+    <p class="portada-etiqueta">{{ noticia.publicada_en|date:"d M Y" }}</p>
+    <h1>{{ noticia.titulo }}</h1>
+    {% if noticia.imagen %}
+        <figure class="foto-avistamiento">
+            <img src="{{ noticia.imagen.url }}" alt="{{ noticia.titulo }}">
+        </figure>
+    {% endif %}
+    {% if noticia.resumen %}<p class="noticia-resumen">{{ noticia.resumen }}</p>{% endif %}
+    <div class="articulo-cuerpo">{{ noticia.contenido|linebreaksbr }}</div>
+    <p class="pie-enlaces"><a href="{% url 'noticias' %}">← Volver a todas las noticias</a></p>
+</article>
+{% endblock %}

@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block titulo %}Código de conducta{% endblock %}
+
+{% block contenido %}
+<section class="cabecera-pagina">
+    <p class="portada-etiqueta">Observación responsable</p>
+    <h1>Código de conducta</h1>
+    <p>{{ frase_inspiradora }}</p>
+</section>
+
+<section class="panel">
+    <p>
+        BirdWatch es una comunidad de personas que aman las aves. Para que nuestra afición
+        contribuya de verdad a la conservación de {{ nombre_parque }}, seguimos estos compromisos:
+    </p>
+
+    <h2>Con las aves</h2>
+    <ul class="lista-sencilla">
+        <li><strong>Observa a distancia.</strong> Usa binoculares o zoom; nunca persigas a un ave.</li>
+        <li><strong>No alteres su conducta.</strong> Evita grabaciones de llamadas para atraerlas, sobre todo en temporada de anidación.</li>
+        <li><strong>No toques nidos, huevos ni crías.</strong> Si encuentras un ave herida, avisa a las autoridades ambientales.</li>
+        <li><strong>No alimentes a las aves silvestres.</strong> Cambia su dieta y las vuelve dependientes.</li>
+        <li><strong>Respeta los horarios de descanso</strong> y no invadas dormideros.</li>
+    </ul>
+
+    <h2>Con el hábitat</h2>
+    <ul class="lista-sencilla">
+        <li>Por los senderos marcados; no pises la vegetación ni arranques flores.</li>
+        <li>No dejes basura, especialmente plásticos o restos de comida.</li>
+        <li>No enciendas fuegos ni hagas ruido excesivo en el bosque.</li>
+        <li>Respeta las zonas de protección y las indicaciones del parque.</li>
+    </ul>
+
+    <h2>Con la comunidad</h2>
+    <ul class="lista-sencilla">
+        <li>Registra solo lo que viste o escuchaste; la honestidad es la base de los datos.</li>
+        <li>Comenta con respeto y ayuda a quien está aprendiendo.</li>
+        <li>Valida la información cuando puedas confirmarla.</li>
+        <li>No publiques fotos de nidos de especies amenazadas con ubicación exacta.</li>
+        <li>Cumple las decisiones de los administradores y reporta los abusos.</li>
+    </ul>
+
+    <p class="pie-enlaces">
+        ¿Ves algo que no cumple estas normas? <a href="{% url 'contacto' %}">Escríbenos</a>.
+    </p>
+</section>
+{% endblock %}
