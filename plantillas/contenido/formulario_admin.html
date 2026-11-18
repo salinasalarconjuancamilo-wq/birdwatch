@@ -10,7 +10,7 @@
 </section>
 
 <section class="panel formulario-panel">
-    <form method="post" class="formulario-admin" novalidate>
+    <form method="post" class="formulario-admin" enctype="multipart/form-data" novalidate>
         {% csrf_token %}
         {% for campo in form %}
             <div class="campo">

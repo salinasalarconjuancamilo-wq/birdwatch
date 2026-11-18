@@ -1,6 +1,7 @@
 from django.contrib import admin
 
 from .models import (
+    FotoParque,
     LugarObservacion,
     MensajeContacto,
     Noticia,
@@ -34,12 +35,29 @@ class MensajeContactoAdmin(admin.ModelAdmin):
     readonly_fields = ("nombre", "correo", "asunto", "mensaje", "creado_en")
 
 
+class FotoParqueInline(admin.TabularInline):
+    model = FotoParque
+    extra = 0
+    fields = ("imagen", "titulo", "orden", "activa")
+    ordering = ("orden", "id")
+
+
 @admin.register(LugarObservacion)
 class LugarObservacionAdmin(admin.ModelAdmin):
     list_display = ("nombre", "tipo", "ubicacion", "activo", "orden")
     list_editable = ("activo", "orden")
     list_filter = ("tipo", "activo")
     search_fields = ("nombre", "ubicacion", "descripcion")
+    prepopulated_fields = {"slug": ("nombre",)}
+    inlines = [FotoParqueInline]
+
+
+@admin.register(FotoParque)
+class FotoParqueAdmin(admin.ModelAdmin):
+    list_display = ("lugar", "titulo", "orden", "activa")
+    list_editable = ("orden", "activa")
+    list_filter = ("activa", "lugar")
+    search_fields = ("titulo", "descripcion", "lugar__nombre")
 
 
 @admin.register(Seccion)

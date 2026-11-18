@@ -1117,3 +1117,164 @@ a { color: var(--verde-medio); }
         scroll-behavior: auto !important;
     }
 }
+
+/* ---------------- Parques: selector y página propia ---------------- */
+
+.cabecera-pagina {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 12px 16px 0;
+}
+
+.cabecera-pagina h1 {
+    margin: 4px 0 10px;
+    color: var(--verde-bosque);
+    font-size: clamp(1.7rem, 4vw, 2.4rem);
+}
+
+.cabecera-pagina p { max-width: 760px; }
+
+.parques-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 22px;
+    max-width: 1080px;
+    margin: 26px auto 70px;
+    padding: 0 16px;
+}
+
+.parques-grid--avis { margin-top: 18px; }
+
+.parque-tarjeta {
+    display: flex;
+    flex-direction: column;
+    background: #fff;
+    border-radius: 22px;
+    overflow: hidden;
+    box-shadow: var(--sombra-suave);
+    text-decoration: none;
+    color: inherit;
+    border-bottom: 5px solid var(--verde-claro);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.parque-tarjeta:hover { transform: translateY(-5px); box-shadow: var(--sombra); }
+
+.parque-tarjeta-imagen {
+    position: relative;
+    aspect-ratio: 16 / 9;
+    background: linear-gradient(135deg, var(--verde-menta), var(--verde-medio));
+    background-size: cover;
+    background-position: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.parque-inicial {
+    font-size: 3.6rem;
+    font-weight: 800;
+    color: rgba(255, 255, 255, 0.88);
+}
+
+.parque-inicial--grande { font-size: 6rem; }
+
+.parque-tarjeta-texto {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 18px 20px 22px;
+}
+
+.parque-tarjeta-texto h2,
+.parque-tarjeta-texto h3 {
+    margin: 0;
+    color: var(--verde-bosque);
+    font-size: 1.25rem;
+}
+
+.parque-tipo {
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: var(--verde-hoja);
+}
+
+.parque-ubicacion { margin: 0; color: var(--texto-gris); font-size: 0.95rem; }
+
+.parque-eslogan { margin: 4px 0 0; font-style: italic; color: var(--verde-medio); }
+
+.parque-fotos-numero { margin: 6px 0 0; color: var(--texto-gris); font-size: 0.85rem; }
+
+.parque-entrar {
+    margin-top: 10px;
+    font-weight: 700;
+    color: var(--verde-medio);
+    text-decoration: none;
+}
+
+.parque-tarjeta--aviso { border-bottom-color: var(--sol); cursor: default; }
+.parque-tarjeta--aviso:hover { transform: none; box-shadow: var(--sombra-suave); }
+
+.parque-hero {
+    display: grid;
+    grid-template-columns: 1.15fr 1fr;
+    gap: 26px;
+    align-items: stretch;
+    max-width: 1080px;
+    margin: 8px auto 30px;
+    padding: 0 16px;
+}
+
+.parque-hero-texto {
+    background: #fff;
+    border-radius: 24px;
+    border-top: 8px solid var(--acento, var(--verde-claro));
+    box-shadow: var(--sombra-suave);
+    padding: 26px 28px;
+}
+
+.parque-hero-texto h1 {
+    margin: 4px 0 6px;
+    color: var(--verde-bosque);
+    font-size: clamp(1.8rem, 4vw, 2.6rem);
+}
+
+.parque-descripcion { color: var(--texto-oscuro); }
+
+.parque-volver {
+    display: inline-block;
+    margin-bottom: 10px;
+    color: var(--verde-medio);
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.parque-volver:hover { text-decoration: underline; }
+
+.parque-hero-acciones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 16px;
+}
+
+.parque-hero-imagen {
+    min-height: 280px;
+    border-radius: 24px;
+    background: linear-gradient(135deg, var(--verde-menta), var(--acento, var(--verde-medio)));
+    background-size: cover;
+    background-position: center;
+    box-shadow: var(--sombra);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+@media (max-width: 760px) {
+    .parque-hero { grid-template-columns: 1fr; }
+    .parque-hero-imagen { min-height: 200px; }
+}

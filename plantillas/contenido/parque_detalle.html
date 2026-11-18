@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block titulo %}{{ lugar.nombre }}{% endblock %}
+
+{% block contenido %}
+<section class="parque-hero" style="--acento: {{ lugar.color_acento|default:'#40916c' }};">
+    <div class="parque-hero-texto">
+        <a class="parque-volver" href="{% url 'parques' %}">← Todos los parques</a>
+        <p class="portada-etiqueta">{{ lugar.get_tipo_display }} · {{ lugar.ubicacion }}</p>
+        <h1>{{ lugar.nombre }}</h1>
+        {% if lugar.eslogan %}<p class="parque-eslogan">«{{ lugar.eslogan }}»</p>{% endif %}
+        {% if lugar.descripcion %}<p class="parque-descripcion">{{ lugar.descripcion|linebreaksbr }}</p>{% endif %}
+
+        <div class="parque-hero-acciones">
+            <a class="boton-primario" href="{% url 'avistamiento_nuevo' %}">Registrar un avistamiento</a>
+            {% if lugar.tiene_coordenadas %}
+            <a class="boton-secundario" href="{% url 'mapa' %}">Ver en el mapa</a>
+            {% endif %}
+            {% if puede_editar %}
+            <a class="boton-secundario" href="{% url 'parque_fotos' lugar.pk %}">Editar carrusel</a>
+            <a class="boton-secundario" href="{% url 'lugar_editar' lugar.pk %}">Editar datos</a>
+            {% endif %}
+        </div>
+    </div>
+    <div class="parque-hero-imagen"
+         {% if lugar.foto_portada %}style="background-image:url('{{ lugar.foto_portada }}')"{% endif %}>
+        {% if not lugar.foto_portada %}
+        <span class="parque-inicial parque-inicial--grande" aria-hidden="true">{{ lugar.nombre|first }}</span>
+        {% endif %}
+    </div>
+</section>
+
+{% if fotos %}
+<section class="seccion">
+    <h2 class="seccion-titulo">Conoce {{ lugar.nombre }}</h2>
+    <p class="seccion-sub">Un recorrido en imágenes por este lugar.</p>
+
+    <div class="carrusel-envoltura">
+        <div class="carrusel" id="carrusel-parque" tabindex="0"
+             aria-label="Carrusel de fotos de {{ lugar.nombre }}">
+            {% for foto in fotos %}
+            <article class="diapositiva">
+                <div class="diapositiva-imagen">
+                    <img src="{{ foto.imagen.url }}"
+                         alt="{{ foto.titulo|default:lugar.nombre }}" loading="lazy"
+                         width="640" height="427">
+                </div>
+                <div class="diapositiva-texto">
+                    <h3>{{ foto.titulo|default:lugar.nombre }}</h3>
+                    {% if foto.descripcion %}<p class="descripcion">{{ foto.descripcion }}</p>{% endif %}
+                </div>
+            </article>
+            {% endfor %}
+        </div>
+        <button class="flecha flecha-anterior" id="carrusel-parque-anterior"
+                type="button" aria-label="Foto anterior">&#10094;</button>
+        <button class="flecha flecha-siguiente" id="carrusel-parque-siguiente"
+                type="button" aria-label="Foto siguiente">&#10095;</button>
+    </div>
+    <div class="carrusel-puntos" id="carrusel-parque-puntos" role="tablist"
+         aria-label="Ir a una foto del carrusel"></div>
+</section>
+{% else %}
+<section class="seccion">
+    <p class="sin-resultados">
+        Este parque todavía no tiene fotos en su carrusel.
+        {% if puede_editar %}
+        <a href="{% url 'parque_foto_nueva' lugar.pk %}">Añadir la primera foto</a>.
+        {% endif %}
+    </p>
+</section>
+{% endif %}
+
+<section class="seccion">
+    <h2 class="seccion-titulo">Avistamientos en este lugar</h2>
+    <p class="seccion-sub">
+        {{ total_avistamientos }} avistamiento{{ total_avistamientos|pluralize:"s" }}
+        aprobado{{ total_avistamientos|pluralize:"s" }} por la comunidad.
+    </p>
+
+    {% if avistamientos %}
+    <div class="parques-grid parques-grid--avis">
+        {% for avistamiento in avistamientos %}
+        <article class="parque-tarjeta parque-tarjeta--aviso">
+            <div class="parque-tarjeta-texto">
+                <p class="parque-tipo">{{ avistamiento.fecha|date:"d M Y" }}</p>
+                <h3>{{ avistamiento.ave.nombre_comun }}</h3>
+                <p class="parque-ubicacion">
+                    {{ avistamiento.cantidad }} ave{{ avistamiento.cantidad|pluralize:"s" }}
+                    {% if avistamiento.zona %}· {{ avistamiento.zona }}{% endif %}
+                </p>
+                {% if avistamiento.notas %}
+                <p class="descripcion">{{ avistamiento.notas|truncatechars:110 }}</p>
+                {% endif %}
+                <a class="parque-entrar" href="{% url 'avistamiento_detalle' avistamiento.pk %}">Ver detalle →</a>
+            </div>
+        </article>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p class="sin-resultados">
+        Aún no hay avistamientos aprobados en este lugar.
+        <a href="{% url 'avistamiento_nuevo' %}">Sé el primero en registrar uno</a>.
+    </p>
+    {% endif %}
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'js/carrusel.js' %}"></script>
+{% endblock %}

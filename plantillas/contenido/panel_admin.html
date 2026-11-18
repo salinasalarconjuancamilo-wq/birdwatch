@@ -16,7 +16,12 @@
     <div class="panel">
         <div class="carrusel-cabecera">
             <h2>Lugares del mapa</h2>
-            <a class="boton-primario" href="{% url 'lugar_nuevo' %}">+ Agregar parque o lugar</a>
+            <div class="parque-hero-acciones">
+                {% if user.is_superuser %}
+                <a class="boton-secundario" href="{% url 'parques_admin' %}">Carrusel de parques</a>
+                {% endif %}
+                <a class="boton-primario" href="{% url 'lugar_nuevo' %}">+ Agregar parque o lugar</a>
+            </div>
         </div>
         <table class="admin-tabla">
             <thead>
@@ -25,7 +30,7 @@
             <tbody>
                 {% for lugar in lugares %}
                 <tr>
-                    <td><strong>{{ lugar.nombre }}</strong><br><span class="ayuda">{{ lugar.get_tipo_display }}</span></td>
+                    <td><strong>{{ lugar.nombre }}</strong><br><span class="ayuda">{{ lugar.get_tipo_display }} · /parques/{{ lugar.slug }}/</span></td>
                     <td>{{ lugar.ubicacion }}</td>
                     <td>
                         {% if lugar.tiene_coordenadas %}
@@ -36,6 +41,9 @@
                         {% if lugar.activo %}<span class="etiqueta">Visible</span>{% else %}<span class="etiqueta pendiente">Oculta</span>{% endif %}
                     </td>
                     <td class="admin-acciones">
+                        {% if user.is_superuser %}
+                        <a class="boton-secundario" href="{% url 'parque_fotos' lugar.pk %}">Fotos</a>
+                        {% endif %}
                         <a class="boton-secundario" href="{% url 'lugar_editar' lugar.pk %}">Editar</a>
                         <form method="post" action="{% url 'lugar_alternar' lugar.pk %}">
                             {% csrf_token %}

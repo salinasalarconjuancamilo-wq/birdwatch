@@ -7,6 +7,8 @@ Roles del proyecto
   comentar y validar información.
 * **Administrador**: ``is_staff`` o ``is_superuser``. Además puede aprobar
   contenido, gestionar usuarios y controlar los registros.
+* **Superadministrador**: ``is_superuser``. Además edita el carrusel de aves y
+  el carrusel de fotos de cada parque.
 """
 from functools import wraps
 
@@ -47,6 +49,23 @@ def solo_administrador(vista):
         if not es_administrador(request.user):
             messages.error(request, "Esta acción es solo para administradores.")
             return redirect("avistamientos")
+        return vista(request, *args, **kwargs)
+
+    return envoltura
+
+
+def solo_superadmin(vista):
+    """Permite el acceso únicamente al superadministrador."""
+
+    @wraps(vista)
+    def envoltura(request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return _redirigir_a_login(request)
+        if not request.user.is_superuser:
+            messages.error(
+                request, "Solo el superadministrador puede modificar el carrusel."
+            )
+            return redirect("inicio")
         return vista(request, *args, **kwargs)
 
     return envoltura

@@ -30,19 +30,17 @@ CSRF_TRUSTED_ORIGINS = [
 
 # ------------------------------------------------------------------ Aplicaciones
 INSTALLED_APPS = [
+    # Apps del proyecto primero: así sus comandos (runserver, preparar…)
+    # tienen prioridad sobre los de django.contrib.staticfiles.
+    "core",
+    "aves",
+    "contenido",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    # App principal: identificador por canto (BirdNET) y detecciones.
-    "core",
-    # App original del repositorio: catalogo y avistamientos de aves
-    # (se administra desde /admin/).
-    "aves",
-    # Contenido dinamico de la comunidad: noticias, ayuda y contacto.
-    "contenido",
 ]
 
 MIDDLEWARE = [

@@ -1,5 +1,4 @@
 import json
-from functools import wraps
 from pathlib import Path
 
 from django.conf import settings
@@ -9,7 +8,6 @@ from django.contrib.auth.decorators import login_required
 from django.core.mail import send_mail
 from django.http import FileResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
-from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.decorators.http import require_POST
@@ -27,23 +25,7 @@ from .forms import (
     VerificarCodigoForm,
 )
 from .models import Ave, CodigoRecuperacion, Deteccion
-
-
-def solo_superadmin(vista):
-    """Permite el acceso únicamente al superadministrador."""
-
-    @wraps(vista)
-    def envoltura(request, *args, **kwargs):
-        if not request.user.is_authenticated:
-            return redirect(f"{reverse('entrar')}?siguiente={request.path}")
-        if not request.user.is_superuser:
-            messages.error(
-                request, "Solo el superadministrador puede modificar el carrusel."
-            )
-            return redirect("inicio")
-        return vista(request, *args, **kwargs)
-
-    return envoltura
+from .permisos import solo_superadmin
 
 
 def inicio(request):

@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block titulo %}Parques y reservas{% endblock %}
+
+{% block contenido %}
+<section class="cabecera-pagina">
+    <p class="portada-etiqueta">Parques, reservas y zoológicos</p>
+    <h1>Explora cada parque</h1>
+    <p>
+        Cada parque registrado tiene su propia página con fotos, información y los
+        avistamientos de la comunidad. Elige uno para entrar.
+    </p>
+    {% if user.is_superuser %}
+    <p><a class="boton-primario" href="{% url 'parques_admin' %}">Administrar parques</a></p>
+    {% endif %}
+</section>
+
+<section class="parques-grid">
+    {% for lugar in lugares %}
+    <a class="parque-tarjeta" href="{% url 'parque_detalle' lugar.slug %}">
+        <div class="parque-tarjeta-imagen"
+             {% if lugar.foto_portada %}style="background-image:url('{{ lugar.foto_portada }}')"{% endif %}>
+            {% if not lugar.foto_portada %}
+                <span class="parque-inicial" aria-hidden="true">{{ lugar.nombre|first }}</span>
+            {% endif %}
+            {% if not lugar.activo %}<span class="etiqueta-oculta">Oculta</span>{% endif %}
+        </div>
+        <div class="parque-tarjeta-texto">
+            <p class="parque-tipo">{{ lugar.get_tipo_display }}</p>
+            <h2>{{ lugar.nombre }}</h2>
+            <p class="parque-ubicacion">{{ lugar.ubicacion }}</p>
+            {% if lugar.eslogan %}<p class="parque-eslogan">«{{ lugar.eslogan }}»</p>{% endif %}
+            <p class="parque-fotos-numero">
+                {{ lugar.fotos_activas|length }} foto{{ lugar.fotos_activas|length|pluralize:"s" }}
+                en su carrusel
+            </p>
+            <span class="parque-entrar">Entrar al parque →</span>
+        </div>
+    </a>
+    {% empty %}
+    <div class="sin-resultados">
+        <p>Todavía no hay parques publicados.</p>
+        {% if user.is_superuser %}
+        <p><a class="boton-primario" href="{% url 'lugar_nuevo' %}">Registrar el primer parque</a></p>
+        {% endif %}
+    </div>
+    {% endfor %}
+</section>
+{% endblock %}

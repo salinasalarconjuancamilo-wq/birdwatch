@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block titulo %}Carrusel de {{ lugar.nombre }}{% endblock %}
+
+{% block contenido %}
+<section class="cabecera-pagina">
+    <p class="portada-etiqueta">{{ lugar.get_tipo_display }} · {{ lugar.ubicacion }}</p>
+    <h1>Carrusel de {{ lugar.nombre }}</h1>
+    <p>
+        Añade, edita, ordena u oculta las fotos que aparecen en la página del parque.
+        Los cambios se ven al instante en
+        <a href="{% url 'parque_detalle' lugar.slug %}" target="_blank" rel="noopener">la página pública</a>.
+    </p>
+    <div class="parque-hero-acciones">
+        <a class="boton-primario" href="{% url 'parque_foto_nueva' lugar.pk %}">+ Añadir foto</a>
+        <a class="boton-secundario" href="{% url 'parques_admin' %}">Volver a parques</a>
+        <a class="boton-secundario" href="{% url 'lugar_editar' lugar.pk %}">Editar datos del parque</a>
+    </div>
+</section>
+
+<section class="pagina-carrusel">
+    <p class="carrusel-resumen">
+        {{ fotos|length }} foto{{ fotos|length|pluralize:"s" }} en total ·
+        {{ lugar.fotos_activas|length }} visible{{ lugar.fotos_activas|length|pluralize:"s" }}
+        en la página del parque
+    </p>
+
+    <div class="carrusel-lista">
+        {% for foto in fotos %}
+        <article class="carrusel-item {% if not foto.activa %}carrusel-item-oculto{% endif %}">
+            <img class="carrusel-item-foto" src="{{ foto.imagen.url }}"
+                 alt="Foto de {{ lugar.nombre }}" width="160" height="100" loading="lazy">
+            <div class="carrusel-item-info">
+                <h2 class="carrusel-item-nombre">
+                    {{ foto.titulo|default:"Sin título" }}
+                    {% if not foto.activa %}<span class="etiqueta-oculta">Oculta</span>{% endif %}
+                </h2>
+                {% if foto.descripcion %}
+                <p class="descripcion">{{ foto.descripcion|truncatechars:140 }}</p>
+                {% endif %}
+                <p class="carrusel-item-posicion">Posición {{ foto.orden }}</p>
+            </div>
+            <div class="carrusel-item-acciones">
+                <a class="boton-secundario" href="{% url 'parque_foto_editar' lugar.pk foto.pk %}">Editar</a>
+
+                <form method="post" action="{% url 'parque_foto_mover' lugar.pk foto.pk %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="direccion" value="subir">
+                    <button class="boton-icono" type="submit" title="Subir una posición"
+                            aria-label="Subir la foto">&#9650;</button>
+                </form>
+                <form method="post" action="{% url 'parque_foto_mover' lugar.pk foto.pk %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="direccion" value="bajar">
+                    <button class="boton-icono" type="submit" title="Bajar una posición"
+                            aria-label="Bajar la foto">&#9660;</button>
+                </form>
+
+                <form method="post" action="{% url 'parque_foto_alternar' lugar.pk foto.pk %}">
+                    {% csrf_token %}
+                    <button class="boton-secundario" type="submit">
+                        {% if foto.activa %}Ocultar{% else %}Mostrar{% endif %}
+                    </button>
+                </form>
+
+                <form method="post" action="{% url 'parque_foto_eliminar' lugar.pk foto.pk %}"
+                      onsubmit="return confirm('¿Eliminar esta foto del carrusel? Esta acción no se puede deshacer.');">
+                    {% csrf_token %}
+                    <button class="boton-peligro" type="submit">Eliminar</button>
+                </form>
+            </div>
+        </article>
+        {% empty %}
+        <p class="sin-resultados">
+            Este parque todavía no tiene fotos. Usa «Añadir foto» para crear la primera.
+        </p>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}

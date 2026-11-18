@@ -4,10 +4,24 @@ from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
-from core.permisos import es_administrador, solo_administrador
+from aves.models import Avistamiento
+from core.permisos import es_administrador, solo_administrador, solo_superadmin
 
-from .forms import LugarForm, MensajeContactoForm, NoticiaPanelForm, SeccionForm
-from .models import LugarObservacion, Noticia, PreguntaFrecuente, Seccion, secciones_activas
+from .forms import (
+    FotoParqueForm,
+    LugarForm,
+    MensajeContactoForm,
+    NoticiaPanelForm,
+    SeccionForm,
+)
+from .models import (
+    FotoParque,
+    LugarObservacion,
+    Noticia,
+    PreguntaFrecuente,
+    Seccion,
+    secciones_activas,
+)
 
 
 def _exigir_seccion(request, clave):
@@ -66,6 +80,43 @@ def conducta(request):
     return render(request, "contenido/conducta.html")
 
 
+# ------------------------------------------------------ Páginas de los parques
+
+
+def parques(request):
+    """Selector de parques: es la página que se abre al pulsar el logo."""
+    consulta = LugarObservacion.objects.all()
+    if not es_administrador(request.user):
+        consulta = consulta.filter(activo=True)
+    lugares = consulta.prefetch_related("fotos").order_by("orden", "nombre")
+    return render(request, "contenido/parques.html", {"lugares": lugares})
+
+
+def parque_detalle(request, slug):
+    """Página personalizada de un parque: portada, carrusel y avistamientos."""
+    lugar = get_object_or_404(LugarObservacion, slug=slug)
+    if not lugar.activo and not es_administrador(request.user):
+        raise Http404("Este parque todavía no está publicado.")
+
+    fotos = lugar.fotos.filter(activa=True)
+    avistamientos = Avistamiento.objects.filter(
+        aprobado=True, lugar__iexact=lugar.nombre
+    ).select_related("ave")[:6]
+    return render(
+        request,
+        "contenido/parque_detalle.html",
+        {
+            "lugar": lugar,
+            "fotos": fotos,
+            "avistamientos": avistamientos,
+            "total_avistamientos": Avistamiento.objects.filter(
+                aprobado=True, lugar__iexact=lugar.nombre
+            ).count(),
+            "puede_editar": request.user.is_superuser,
+        },
+    )
+
+
 # ------------------------------------------------ Panel de administración
 
 
@@ -85,7 +136,7 @@ def panel_contenido(request):
 
 def _editar(request, formulario, instancia, titulo, volver, mensaje):
     """Lógica compartida por los formularios del panel."""
-    forma = formulario(request.POST or None, instance=instancia)
+    forma = formulario(request.POST or None, request.FILES or None, instance=instancia)
     if request.method == "POST" and forma.is_valid():
         forma.save()
         messages.success(request, mensaje)
@@ -119,6 +170,11 @@ def lugar_editar(request, pk):
 def lugar_eliminar(request, pk):
     lugar = get_object_or_404(LugarObservacion, pk=pk)
     nombre = lugar.nombre
+    if lugar.portada:
+        lugar.portada.delete(save=False)
+    for foto in lugar.fotos.all():
+        if foto.imagen:
+            foto.imagen.delete(save=False)
     lugar.delete()
     messages.success(request, f"Se eliminó el lugar «{nombre}».")
     return redirect("contenido_admin")
@@ -130,8 +186,135 @@ def lugar_alternar(request, pk):
     lugar = get_object_or_404(LugarObservacion, pk=pk)
     lugar.activo = not lugar.activo
     lugar.save(update_fields=["activo"])
-    messages.success(request, f"«{lugar.nombre}» {'se muestra' if lugar.activo else 'se ocultó'} en el mapa.")
+    messages.success(
+        request,
+        f"«{lugar.nombre}» {'se muestra' if lugar.activo else 'se ocultó'} en el sitio.",
+    )
     return redirect("contenido_admin")
+
+
+# ---------------------------------------- Carrusel de fotos de cada parque
+
+
+@solo_superadmin
+def parques_admin(request):
+    """Listado de parques para administrar su carrusel de fotos."""
+    lugares = (
+        LugarObservacion.objects.prefetch_related("fotos")
+        .order_by("orden", "nombre")
+    )
+    return render(request, "contenido/parques_admin.html", {"lugares": lugares})
+
+
+@solo_superadmin
+def parque_fotos(request, pk):
+    """Carrusel de fotos de un parque."""
+    lugar = get_object_or_404(LugarObservacion, pk=pk)
+    return render(
+        request,
+        "contenido/parque_fotos.html",
+        {"lugar": lugar, "fotos": lugar.fotos.all()},
+    )
+
+
+@solo_superadmin
+def parque_foto_nueva(request, pk):
+    lugar = get_object_or_404(LugarObservacion, pk=pk)
+    if request.method == "POST":
+        formulario = FotoParqueForm(request.POST, request.FILES)
+        if formulario.is_valid():
+            foto = formulario.save(commit=False)
+            foto.lugar = lugar
+            foto.save()
+            messages.success(request, f"Se añadió una foto a «{lugar.nombre}».")
+            return redirect("parque_fotos", pk=lugar.pk)
+    else:
+        ultimo = (
+            lugar.fotos.order_by("-orden").values_list("orden", flat=True).first() or 0
+        )
+        formulario = FotoParqueForm(initial={"orden": ultimo + 1, "activa": True})
+    return render(
+        request,
+        "contenido/parque_foto_form.html",
+        {
+            "formulario": formulario,
+            "lugar": lugar,
+            "titulo": f"Añadir foto a «{lugar.nombre}»",
+        },
+    )
+
+
+@solo_superadmin
+def parque_foto_editar(request, pk, foto_pk):
+    lugar = get_object_or_404(LugarObservacion, pk=pk)
+    foto = get_object_or_404(FotoParque, pk=foto_pk, lugar=lugar)
+    if request.method == "POST":
+        formulario = FotoParqueForm(request.POST, request.FILES, instance=foto)
+        if formulario.is_valid():
+            formulario.save()
+            messages.success(request, "La foto se actualizó.")
+            return redirect("parque_fotos", pk=lugar.pk)
+    else:
+        formulario = FotoParqueForm(instance=foto)
+    return render(
+        request,
+        "contenido/parque_foto_form.html",
+        {
+            "formulario": formulario,
+            "lugar": lugar,
+            "foto": foto,
+            "titulo": f"Editar foto de «{lugar.nombre}»",
+        },
+    )
+
+
+@solo_superadmin
+@require_POST
+def parque_foto_eliminar(request, pk, foto_pk):
+    lugar = get_object_or_404(LugarObservacion, pk=pk)
+    foto = get_object_or_404(FotoParque, pk=foto_pk, lugar=lugar)
+    if foto.imagen:
+        foto.imagen.delete(save=False)
+    foto.delete()
+    messages.success(request, f"Se eliminó una foto de «{lugar.nombre}».")
+    return redirect("parque_fotos", pk=lugar.pk)
+
+
+@solo_superadmin
+@require_POST
+def parque_foto_alternar(request, pk, foto_pk):
+    lugar = get_object_or_404(LugarObservacion, pk=pk)
+    foto = get_object_or_404(FotoParque, pk=foto_pk, lugar=lugar)
+    foto.activa = not foto.activa
+    foto.save(update_fields=["activa"])
+    estado = "se muestra" if foto.activa else "se ocultó"
+    messages.success(request, f"La foto {estado} en el carrusel de «{lugar.nombre}».")
+    return redirect("parque_fotos", pk=lugar.pk)
+
+
+@solo_superadmin
+@require_POST
+def parque_foto_mover(request, pk, foto_pk):
+    lugar = get_object_or_404(LugarObservacion, pk=pk)
+    foto = get_object_or_404(FotoParque, pk=foto_pk, lugar=lugar)
+    direccion = request.POST.get("direccion")
+    fotos = list(lugar.fotos.order_by("orden", "id"))
+    indice = next((i for i, otra in enumerate(fotos) if otra.pk == foto.pk), None)
+    destino = indice + (-1 if direccion == "subir" else 1) if indice is not None else None
+    if destino is None or not 0 <= destino < len(fotos):
+        return redirect("parque_fotos", pk=lugar.pk)
+
+    for posicion, otra in enumerate(fotos, start=1):
+        if otra.orden != posicion:
+            otra.orden = posicion
+            otra.save(update_fields=["orden"])
+    vecina = fotos[destino]
+    foto.orden, vecina.orden = vecina.orden, foto.orden
+    foto.save(update_fields=["orden"])
+    vecina.save(update_fields=["orden"])
+
+    messages.success(request, "La foto cambió de posición.")
+    return redirect("parque_fotos", pk=lugar.pk)
 
 
 @solo_administrador

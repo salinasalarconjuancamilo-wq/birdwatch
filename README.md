@@ -20,9 +20,10 @@ una **comunidad de observación ciudadana**.
 
 | Rol | Qué puede hacer |
 |-----|-----------------|
-| **Acceso público** | Ver la portada informativa, el mapa de lugares, los avistamientos aprobados, la ayuda y la conducta. No requiere login. Las secciones desactivadas no son públicas. |
+| **Acceso público** | Ver la portada informativa, el selector y las páginas de los parques, el mapa, los avistamientos aprobados, la ayuda y la conducta. No requiere login. Las secciones desactivadas no son públicas. |
 | **Usuario** | Todo lo anterior + registrar avistamientos, comentar y validar información. Puede crear su cuenta en `/registrarse/`. |
 | **Administrador** (`is_staff`/`is_superuser`) | Todo lo anterior + aprobar contenido, controlar registros y gestionar lugares, secciones y noticias desde `/contenido/admin/` y `/admin/`. |
+| **Superadministrador** (`is_superuser`) | Todo lo anterior + editar el **carrusel de aves** (`/carrusel/`) y el **carrusel de fotos de cada parque** (`/contenido/admin/parques/`). |
 
 El acceso se hace con **correo electrónico y contraseña**. Después de sembrar, el superadministrador
 usa el correo `user@birdwatch.local`; la clave inicial se toma de `BIRDWATCH_ADMIN_PASSWORD`
@@ -35,6 +36,8 @@ usa el correo `user@birdwatch.local`; la clave inicial se toma de `BIRDWATCH_ADM
 | Módulo | Ruta | Descripción |
 |--------|------|-------------|
 | Portada | `/` | Portada informativa pública, carrusel de aves, visión y misión. Las demás secciones aparecen solo si están activas. |
+| **Parques** | `/parques/` | **Selector de parques: es la página que se abre al pulsar el logo.** |
+| **Página de un parque** | `/parques/<slug>/` | Página personalizada: portada, eslogan, descripción, carrusel de fotos y avistamientos del lugar. |
 | Portada alterna | `/portada/` | Vista histórica de la app `aves` (se conserva por compatibilidad). |
 | Identificador | `/identificar/` | Micrófono → WAV → BirdNET → especies con % de confianza. |
 | Avistamientos | `/avistamientos/` | Listado con filtros por zona, especie y texto. |
@@ -50,43 +53,57 @@ usa el correo `user@birdwatch.local`; la clave inicial se toma de `BIRDWATCH_ADM
 | Conducta | `/conducta/` | Normas para respetar a las aves y su hábitat. |
 | Registrarse | `/registrarse/` | Alta pública de usuarios con correo y contraseña. |
 | Recuperar clave | `/recuperar/` | Envía un código de 6 dígitos por correo y permite crear una nueva clave. |
-| Panel de contenido | `/contenido/admin/` | Agregar/editar/eliminar lugares, secciones y noticias; activar o desactivar secciones. |
-| Carrusel | `/carrusel/` | Panel del superadministrador para editar la portada. |
+| Panel de contenido | `/contenido/admin/` | Agregar/editar/eliminar parques, secciones y noticias; activar o desactivar secciones. |
+| **Carrusel de parques** | `/contenido/admin/parques/` | **Solo superadministrador:** fotos de cada parque (subir, ordenar, ocultar, eliminar). |
+| Carrusel de aves | `/carrusel/` | Solo superadministrador: edita el carrusel de la portada. |
 | Admin | `/admin/` | Usuarios, contenido y registros. |
 
 ---
 
-## 3. Requisitos del equipo (una sola vez)
+## 3. Inicio rápido (tres comandos)
 
-- **Python 3.12 o superior**.
-- **PostgreSQL** opcional: con `DB_ENGINE=sqlite` no se necesita nada más.
-  Si se usa PostgreSQL (servicio de Windows, puerto 5432):
+Requisitos: **Python 3.12 o superior** y **PostgreSQL** (servicio local en el puerto 5432).
 
-  ```sql
-  CREATE ROLE birdwatch LOGIN PASSWORD 'birdwatch';
-  CREATE DATABASE birdwatch OWNER birdwatch;
-  ```
+```bat
+python -m venv .venv
+.venv\Scripts\python.exe -m pip install -r requirements.txt
+.venv\Scripts\python.exe manage.py preparar
+.venv\Scripts\python.exe manage.py runserver
+```
 
-- Entorno virtual e dependencias:
+La aplicación queda en <http://localhost:3000>.
 
-  ```
-  python -m venv .venv --system-site-packages
-  .venv\Scripts\python.exe -m pip install -r requirements.txt
-  ```
+- `preparar` aplica las migraciones y siembra los datos iniciales (usuarios, aves,
+  parques del mapa, secciones, noticias y preguntas). Es **idempotente**.
+- `runserver` inicia **Django en el puerto 3000 y BirdNET en el 8080 automáticamente**.
+  La primera vez BirdNET tarda unos 15 segundos en cargar el modelo (224 MB).
+  Si quieres arrancar solo la web: `python manage.py runserver --sin-birdnet`.
 
-- Tablas y datos de ejemplo:
+### Base de datos PostgreSQL
 
-  ```
-  set DB_ENGINE=sqlite
-  .venv\Scripts\python.exe manage.py migrate
-  .venv\Scripts\python.exe manage.py sembrar
-  .venv\Scripts\python.exe manage.py loaddata aves/fixtures/datos_iniciales.json
-  .venv\Scripts\python.exe manage.py sembrar_comunidad
-  ```
+La conexión por defecto es `postgres://birdwatch:birdwatch@localhost:5432/birdwatch`.
+Si es la primera vez en el equipo, crea el usuario y la base desde `psql` como superusuario:
 
-  - `sembrar`: superusuario, usuario de prueba y 9 aves del carrusel (acceso por correo).
-  - `sembrar_comunidad`: especies, avistamientos, los 3 lugares del mapa, 5 secciones
-    (solo «mapa» y «ayuda» activas), noticias y preguntas frecuentes. Es **idempotente**.
+```sql
+CREATE ROLE birdwatch LOGIN PASSWORD 'birdwatch';
+CREATE DATABASE birdwatch OWNER birdwatch;
+```
+
+Para usar otra base o servidor:
+
+```bat
+set DATABASE_URL=postgres://usuario:clave@servidor:5432/basedatos
+```
+
+> También existe el modo SQLite (`set DB_ENGINE=sqlite`) solo para pruebas rápidas
+> sin PostgreSQL; no se usa en producción.
+
+Los datos que siembra `preparar`:
+
+- `sembrar`: superusuario, usuario de prueba y 9 aves del carrusel (acceso por correo).
+- `loaddata`: catálogo de aves de la comunidad.
+- `sembrar_comunidad`: especies, avistamientos, los 3 lugares del mapa, 5 secciones
+  (solo «mapa» y «ayuda» activas), noticias y preguntas frecuentes.
 
 ---
 
@@ -94,16 +111,15 @@ usa el correo `user@birdwatch.local`; la clave inicial se toma de `BIRDWATCH_ADM
 
 ### 4.1 Iniciar
 
-- **Con PostgreSQL**: doble clic en **`INICIAR-BIRDWATCH.bat`**.
-- **Sin PostgreSQL**: doble clic en **`INICIAR-LOCAL-SQLITE.bat`** (usa `DB_ENGINE=sqlite`).
+- **Opción recomendada:** `python manage.py runserver` (levanta web + BirdNET).
+- **Atajo en Windows:** doble clic en **`INICIAR-BIRDWATCH.bat`**.
 
-Ambos dejan la web en <http://localhost:3000>. El analizador BirdNET arranca en el
-puerto 8080. La primera vez tarda unos 15 segundos en cargar el modelo (224 MB).
+La web queda en <http://localhost:3000> y BirdNET en el puerto 8080.
+Para detener todo: `DETENER-BIRDWATCH.bat` o `Ctrl+C` en la consola de `runserver`.
 
-> Si el `.bat` no arranca en tu intérprete de comandos, ejecuta manualmente:
+> Si prefieres arrancar los servicios por separado:
 >
 > ```
-> set DB_ENGINE=sqlite
 > .venv\Scripts\python.exe servidor_birdnet.py --host 127.0.0.1 --port 8080
 > .venv\Scripts\python.exe manage.py runserver 0.0.0.0:3000 --noreload
 > ```
@@ -168,35 +184,41 @@ birdwatch/                 Configuración (settings, urls, context processors)
   settings.py              Apps, BD, correo/SMTP, idioma, MEDIA, redes
   urls.py                  Todas las rutas del sitio
   context_processors.py    Frase, redes y secciones activas en las plantillas
-core/                      Identificación por canto, acceso y carrusel
+core/                      Identificación por canto, acceso y carrusel de aves
   birdnet.py               Cliente BirdNET, umbral 20 %, filtros anti-ruido
   traducciones.py          Inglés → español
   models.py                Ave, Deteccion y CodigoRecuperacion
   forms.py / views.py      Login, registro, recuperación, identificar, analizar
   urls.py                  Rutas de acceso y del carrusel
-  permisos.py              Decoradores de roles (Usuario / Administrador)
+  permisos.py              Decoradores de roles (Usuario / Administrador / Superadmin)
   data/aves.json           Aves del carrusel
+  management/commands/     sembrar, preparar y runserver (arranca BirdNET solo)
 aves/                      Catálogo y comunidad de avistamientos
   models.py                Ave, Avistamiento, Comentario, Validación
   forms.py / views.py / urls.py / admin.py
   estadisticas.py          Cálculo centralizado de destacados (el mapa ya no los usa)
   management/commands/sembrar_comunidad.py
-  templates/aves/          Listado, formulario, ficha, mapa, estadísticas…
-contenido/                 Contenido dinámico y panel de administración
-  models.py                Noticia, PreguntaFrecuente, MensajeContacto, LugarObservacion, Seccion
+contenido/                 Contenido dinámico, parques y panel de administración
+  models.py                Noticia, PreguntaFrecuente, MensajeContacto,
+                           LugarObservacion (página del parque) y FotoParque (carrusel)
   views.py / urls.py / forms.py / admin.py
-  templates/contenido/     Noticias, ayuda, contacto, conducta, panel_admin
-plantillas/                base, inicio, login, registro, recuperación, identificar, carrusel
-estaticos/
-  css/estilos.css          Diseño principal
+plantillas/                TODAS las páginas HTML en un solo lugar
+  base.html, inicio.html, login.html, registrarse.html, identificar.html…
+  aves/                    Listado, formulario, ficha, mapa, estadísticas…
+  contenido/               Noticias, ayuda, contacto, conducta, panel_admin,
+                           parques.html, parque_detalle.html y el panel de fotos
+  carrusel_admin.html      Panel del carrusel de aves
+  carrusel_form.html       Alta y edición de aves del carrusel
+estaticos/                 TODOS los archivos estáticos en un solo lugar
+  css/estilos.css          Diseño principal (incluye parques)
   css/comunidad.css        Estilos de los módulos de comunidad
   js/mapa.js               Marcadores de lugares Leaflet desde JSON
   js/identificar.js        Micrófono y envío de audio
-  js/carrusel.js           Carrusel de la portada
+  js/carrusel.js           Carruseles de la portada y de cada parque
   img/logo.png             Logo redondo
+medios/                    Fotos subidas (parques, avistamientos, noticias); no va a git
 servidor_birdnet.py        Servidor HTTP del analizador (bottle, puerto 8080)
-INICIAR-BIRDWATCH.bat      Arranque con PostgreSQL
-INICIAR-LOCAL-SQLITE.bat   Arranque sin PostgreSQL
+INICIAR-BIRDWATCH.bat      Atajo de arranque para Windows
 DETENER-BIRDWATCH.bat      Detención de servicios
 ```
 
@@ -262,7 +284,58 @@ También se puede gestionar desde `/admin/`, pero el panel Carrusel es el recome
 
 ---
 
-## 10. Configuración avanzada
+## 10. Parques: página propia y carrusel de fotos
+
+Cada parque registrado tiene una página personalizada y su propio carrusel.
+
+### 10.1 Cómo entra el visitante
+
+1. El **logo** de la cabecera abre el **selector de parques** (`/parques/`).
+2. También hay un enlace **Parques** en el menú principal.
+3. Al elegir un parque se abre su página: `/parques/<slug>/` con portada, eslogan,
+   descripción, carrusel de fotos y los avistamientos aprobados en ese lugar.
+
+El carrusel se pausa al pasar el mouse, responde a las flechas del teclado y se puede
+deslizar con el dedo en el celular.
+
+### 10.2 Registrar un parque (Administrador)
+
+En `/contenido/admin/` → **+ Agregar parque o lugar**. Los campos de la página son:
+
+| Campo | Para qué sirve |
+|-------|----------------|
+| Nombre | Título de la página y base del `slug`. |
+| Slug | Dirección `/parques/<slug>/`. Se genera solo; puedes cambiarlo. |
+| Tipo | Parque natural, zoológico, reserva u otro. |
+| Ubicación | Texto visible, p. ej. «Soacha, Cundinamarca». |
+| Eslogan | Frase corta bajo el nombre. |
+| Descripción | Texto de la página del parque. |
+| Foto de portada | Imagen principal (opcional). Si no hay, se usa la primera foto del carrusel. |
+| Color de acento | Color de la página en hexadecimal (selector de color). |
+| Coordenadas | Para que aparezca en el mapa (opcional). |
+
+Las fotos se reducen y comprimen solas (máximo 1600 px, JPG optimizado).
+
+### 10.3 Editar el carrusel de un parque (solo superadministrador)
+
+Entra a `/contenido/admin/parques/` (enlace **Parques admin** en la cabecera) y pulsa
+**Fotos** en el parque que quieras. Desde ahí puedes:
+
+- **Añadir foto** (JPG/PNG ≤ 10 MB) con título, descripción y posición.
+- **Editar** los datos de la foto.
+- **Ordenar** con ▲ ▼.
+- **Ocultar/mostrar** una foto sin borrarla.
+- **Eliminar** la foto (también borra el archivo de `medios/parques/`).
+
+Los cambios se ven de inmediato en la página pública del parque. El panel de fotos
+también es accesible desde el botón **Editar carrusel** en la propia página del parque.
+
+> Solo el superadministrador ve y usa estos botones; el resto de usuarios y los
+> visitantes anónimos solo pueden ver las páginas.
+
+---
+
+## 11. Configuración avanzada
 
 | Variable | Uso |
 |----------|-----|
@@ -281,24 +354,24 @@ Comandos útiles:
 .venv\Scripts\python.exe manage.py check
 .venv\Scripts\python.exe manage.py makemigrations
 .venv\Scripts\python.exe manage.py migrate
-.venv\Scripts\python.exe manage.py sembrar_comunidad
-.venv\Scripts\python.exe manage.py runserver 0.0.0.0:3000 --noreload
+.venv\Scripts\python.exe manage.py preparar
+.venv\Scripts\python.exe manage.py runserver
 ```
 
 ---
 
-## 11. Notas técnicas
+## 12. Notas técnicas
 
 - `birdnet_analyzer` 2.4 ya no trae su módulo `server`; `servidor_birdnet.py`
   reimplementa la API con `bottle`.
 - El servidor BirdNET usa un solo hilo (configuración global no segura entre hilos).
 - Las grabaciones del analizador van a `%TEMP%\birdwatch-subidas`.
-- Las fotos subidas van a `medios/avistamientos/` y `medios/noticias/` (configurable con `MEDIA_ROOT`).
+- Las fotos subidas van a `medios/` (`avistamientos/`, `noticias/`, `parques/`).
 - Leaflet y OpenStreetMap se cargan por CDN; no hay dependencias de pago.
 
 ---
 
-## 12. Créditos
+## 13. Créditos
 
 - **BirdNET** y el modelo GLOBAL 6K V2.4: Cornell Lab of Ornithology e
   Institut für Vogelforschung (CC BY-NC-SA 4.0).

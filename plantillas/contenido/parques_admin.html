@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block titulo %}Carrusel de los parques{% endblock %}
+
+{% block contenido %}
+<section class="cabecera-pagina">
+    <p class="portada-etiqueta">Administración</p>
+    <h1>Carrusel de los parques</h1>
+    <p>
+        Cada parque tiene una página propia en <code>/parques/&lt;nombre&gt;/</code> con su
+        carrusel de fotos. Registra un parque y luego súbele las fotos.
+    </p>
+    <div class="parque-hero-acciones">
+        <a class="boton-primario" href="{% url 'lugar_nuevo' %}">+ Registrar parque</a>
+        <a class="boton-secundario" href="{% url 'contenido_admin' %}">Volver al panel</a>
+    </div>
+</section>
+
+<section class="panel-admin">
+    <div class="panel">
+        <table class="admin-tabla">
+            <thead>
+                <tr>
+                    <th>Parque</th>
+                    <th>Fotos del carrusel</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for lugar in lugares %}
+                <tr>
+                    <td>
+                        <strong>{{ lugar.nombre }}</strong><br>
+                        <span class="ayuda">/parques/{{ lugar.slug }}/</span>
+                    </td>
+                    <td>
+                        {{ lugar.fotos_activas|length }} visibles
+                        de {{ lugar.fotos.all|length }}
+                    </td>
+                    <td>
+                        {% if lugar.activo %}
+                            <span class="etiqueta">Visible</span>
+                        {% else %}
+                            <span class="etiqueta pendiente">Oculto</span>
+                        {% endif %}
+                    </td>
+                    <td class="admin-acciones">
+                        <a class="boton-secundario" href="{% url 'parque_fotos' lugar.pk %}">Fotos</a>
+                        <a class="boton-secundario" href="{% url 'lugar_editar' lugar.pk %}">Datos</a>
+                        <a class="boton-secundario" href="{% url 'parque_detalle' lugar.slug %}"
+                           target="_blank" rel="noopener">Ver página</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4">
+                        No hay parques registrados.
+                        <a href="{% url 'lugar_nuevo' %}">Registrar el primero</a>.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

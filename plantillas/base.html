@@ -18,12 +18,13 @@
 <a class="salto-contenido" href="#contenido">Saltar al contenido principal</a>
 
 <header class="cabecera">
-    <a class="marca" href="{% url 'inicio' %}">
+    <a class="marca" href="{% url 'parques' %}" title="Elegir un parque">
         <img class="marca-logo" src="{% static 'img/logo.png' %}" alt="Logotipo de BirdWatch" width="40" height="40">
         <span class="marca-nombre">Bird<b>Watch</b></span>
     </a>
     <nav class="navegacion" aria-label="Navegación principal">
         <a class="navegacion-enlace" href="{% url 'inicio' %}">Inicio</a>
+        <a class="navegacion-enlace" href="{% url 'parques' %}">Parques</a>
         <a class="navegacion-enlace" href="{% url 'avistamientos' %}">Avistamientos</a>
         <a class="navegacion-enlace" href="{% url 'mapa' %}">Mapa</a>
         {% if secciones_activas.estadisticas %}
@@ -39,9 +40,12 @@
             <a class="navegacion-enlace" href="{% url 'identificar' %}">Identificar</a>
             {% if user.is_staff or user.is_superuser %}
                 <a class="navegacion-enlace" href="{% url 'avistamientos_pendientes' %}">Por aprobar</a>
-                <a class="navegacion-enlace" href="{% url 'carrusel_admin' %}">Carrusel</a>
                 <a class="navegacion-enlace" href="{% url 'contenido_admin' %}">Contenido</a>
                 <a class="navegacion-enlace" href="{% url 'admin:index' %}">Admin</a>
+            {% endif %}
+            {% if user.is_superuser %}
+                <a class="navegacion-enlace" href="{% url 'carrusel_admin' %}">Carrusel</a>
+                <a class="navegacion-enlace" href="{% url 'parques_admin' %}">Parques admin</a>
             {% endif %}
             <form class="formulario-salir" method="post" action="{% url 'salir' %}">
                 {% csrf_token %}
