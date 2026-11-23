@@ -237,7 +237,8 @@ No hay que pagar nada ni registrar API keys:
 
 - CSS: `https://unpkg.com/leaflet@1.9.4/dist/leaflet.css`
 - JS: `https://unpkg.com/leaflet@1.9.4/dist/leaflet.js`
-- Teselas: `https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png` (CARTO, datos de OpenStreetMap)
+- Teselas: `https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png` (OpenStreetMap, sin API key).
+  No se usa CARTO: su endpoint público devuelve una imagen que dice «API KEY REQUIRED».
 
 Los lugares se gestionan en `contenido/models.py::LugarObservacion` y se inyectan en la
 plantilla con `json_script`. El administrador puede agregar, editar, eliminar, ocultar y
