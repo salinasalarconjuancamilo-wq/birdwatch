@@ -42,11 +42,27 @@
 
     var mapa = L.map(contenedor, { scrollWheelZoom: false }).setView(centro, 12);
 
-    L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
+    var capaTeselas = L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
         attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors &copy; <a href="https://carto.com">CARTO</a>',
         subdomains: "abcd",
-        maxZoom: 20
+        maxZoom: 20,
+        errorTileUrl: "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
     }).addTo(mapa);
+
+    // El proxy de algunas redes falla al abrir el túnel y deja teselas en blanco.
+    // Reintentamos unas veces con espera antes de darlas por perdidas.
+    var reintentos = 0;
+    var temporizador = null;
+    var teselasConError = false;
+    mapa.on("tileerror", function () {
+        teselasConError = true;
+        if (reintentos >= 3 || temporizador) { return; }
+        reintentos += 1;
+        temporizador = setTimeout(function () {
+            temporizador = null;
+            capaTeselas.redraw();
+        }, 1200 * reintentos);
+    });
 
     var capa = L.layerGroup().addTo(mapa);
     var limites = [];
@@ -74,6 +90,8 @@
     }
 
     mapa.on("load", function () {
+        reintentos = 0;
+        teselasConError = false;
         setTimeout(function () { mapa.invalidateSize(); }, 150);
     });
 
@@ -84,6 +102,9 @@
             : "Aún no hay lugares con coordenadas.";
         if (sinCoordenadas) {
             mensaje += " " + sinCoordenadas + " lugar(es) tienen la ubicación por definir.";
+        }
+        if (teselasConError && reintentos >= 3) {
+            mensaje += " Algunas teselas no cargaron; recarga la página.";
         }
         estado.textContent = mensaje;
     }
