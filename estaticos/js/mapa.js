@@ -1,5 +1,5 @@
 /* ============================================================
-   BirdWatch · Mapa de lugares con Leaflet + OpenStreetMap.
+   BirdWatch · Mapa de lugares con Leaflet + Esri World Street Map.
    Los datos se inyectan desde Django con json_script (#datos-marcadores).
    Este mapa NO muestra avistamientos de aves, solo lugares de interés.
    ============================================================ */
@@ -42,8 +42,8 @@
 
     var mapa = L.map(contenedor, { scrollWheelZoom: false }).setView(centro, 12);
 
-    var capaTeselas = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    var capaTeselas = L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}", {
+        attribution: 'Tiles &copy; Esri &mdash; Source: Esri, DeLorme, NAVTEQ, USGS, Intermap, iPC, NRCAN, Esri Japan, METI, Esri China (Hong Kong), Esri (Thailand), TomTom, 2012',
         maxZoom: 19,
         errorTileUrl: "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
     }).addTo(mapa);

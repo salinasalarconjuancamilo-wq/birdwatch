@@ -237,7 +237,7 @@ No hay que pagar nada ni registrar API keys:
 
 - CSS: `https://unpkg.com/leaflet@1.9.4/dist/leaflet.css`
 - JS: `https://unpkg.com/leaflet@1.9.4/dist/leaflet.js`
-- Teselas: `https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png` (OpenStreetMap, sin API key).
+- Teselas: `https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}` (Esri World Street Map, sin API key).
   No se usa CARTO: su endpoint público devuelve una imagen que dice «API KEY REQUIRED».
 
 Los lugares se gestionan en `contenido/models.py::LugarObservacion` y se inyectan en la
