@@ -371,6 +371,8 @@ Comandos útiles:
 
 - `birdnet_analyzer` 2.4 ya no trae su módulo `server`; `servidor_birdnet.py`
   reimplementa la API con `bottle`.
+- Si faltan los archivos V2.4 en `checkpoints/`, se descargan de un espejo público en
+  Hugging Face; el dominio original (`tuc.cloud`) no siempre resuelve.
 - El servidor BirdNET usa un solo hilo (configuración global no segura entre hilos).
 - Las grabaciones del analizador van a `%TEMP%\birdwatch-subidas`.
 - Las fotos subidas van a `medios/` (`avistamientos/`, `noticias/`, `parques/`).

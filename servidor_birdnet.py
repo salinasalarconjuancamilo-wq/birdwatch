@@ -30,12 +30,13 @@ import tempfile
 import time
 import uuid
 
+import requests
 from bottle import Bottle, request, run
 
 import birdnet_analyzer.config as cfg
 from birdnet_analyzer.analyze.utils import iterate_audio_chunks, load_codes
 from birdnet_analyzer.species.utils import get_species_list
-from birdnet_analyzer.utils import ensure_model_exists, read_lines
+from birdnet_analyzer.utils import read_lines
 
 aplicacion = Bottle()
 
@@ -44,10 +45,39 @@ CARPETA_GUARDADO = ""
 
 EXTENSIONES = (".wav", ".flac", ".mp3", ".ogg", ".m4a", ".wma", ".aiff", ".aif")
 
+# El sitio original del modelo (tuc.cloud) no siempre resuelve. Este espejo
+# público de Hugging Face contiene los mismos archivos V2.4 en formato TFLite.
+BASE_MODELO = "https://huggingface.co/sammlapp/BirdNET_v2.4/resolve/main/V2.4"
+ARCHIVOS_MODELO = {
+    "BirdNET_GLOBAL_6K_V2.4_Model_FP32.tflite": f"{BASE_MODELO}/BirdNET_GLOBAL_6K_V2.4_Model_FP32.tflite",
+    # El paquete espera el nombre con "V2"; el espejo lo publica sin él.
+    "BirdNET_GLOBAL_6K_V2.4_MData_Model_V2_FP16.tflite": f"{BASE_MODELO}/BirdNET_GLOBAL_6K_V2.4_MData_Model_FP16.tflite",
+    "BirdNET_GLOBAL_6K_V2.4_Labels.txt": f"{BASE_MODELO}/BirdNET_GLOBAL_6K_V2.4_Labels.txt",
+}
+
+
+def ensure_modelo_local():
+    """Descarga los archivos TFLite que falten sin depender de tuc.cloud."""
+    carpeta = os.path.dirname(cfg.BIRDNET_MODEL_PATH)
+    os.makedirs(carpeta, exist_ok=True)
+    for nombre, url in ARCHIVOS_MODELO.items():
+        destino = os.path.join(carpeta, nombre)
+        if os.path.exists(destino) and os.path.getsize(destino) > 0:
+            continue
+        print(f"Descargando modelo BirdNET: {nombre}", flush=True)
+        respuesta = requests.get(url, stream=True, timeout=120)
+        respuesta.raise_for_status()
+        temporal = destino + ".part"
+        with open(temporal, "wb") as archivo:
+            for bloque in respuesta.iter_content(1024 * 1024):
+                if bloque:
+                    archivo.write(bloque)
+        os.replace(temporal, destino)
+
 
 def preparar_configuracion(meta):
     """Ajusta la configuración global de birdnet_analyzer según "meta"."""
-    ensure_model_exists()
+    ensure_modelo_local()
 
     # Modelo BirdNET V2.4 y sus etiquetas.
     cfg.MODEL_PATH = cfg.BIRDNET_MODEL_PATH
