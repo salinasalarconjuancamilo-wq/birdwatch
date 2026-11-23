@@ -42,9 +42,10 @@
 
     var mapa = L.map(contenedor, { scrollWheelZoom: false }).setView(centro, 12);
 
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        maxZoom: 19,
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
+        attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors &copy; <a href="https://carto.com">CARTO</a>',
+        subdomains: "abcd",
+        maxZoom: 20
     }).addTo(mapa);
 
     var capa = L.layerGroup().addTo(mapa);
