@@ -63,13 +63,17 @@ usa el correo `user@birdwatch.local`; la clave inicial se toma de `BIRDWATCH_ADM
 ## 3. Inicio rápido (tres comandos)
 
 Requisitos: **Python 3.12 o superior** y **PostgreSQL** (servicio local en el puerto 5432).
+Si no quieres usar PostgreSQL, define `DB_ENGINE=sqlite` y se empleará `db.sqlite3`.
 
 ```bat
-python -m venv .venv
-.venv\Scripts\python.exe -m pip install -r requirements.txt
-.venv\Scripts\python.exe manage.py preparar
-.venv\Scripts\python.exe manage.py runserver
+python -m venv env --system-site-packages
+env\Scripts\python.exe -m pip install -r requirements.txt
+env\Scripts\python.exe manage.py preparar
+env\Scripts\python.exe manage.py runserver
 ```
+
+> En este equipo el entorno virtual se llama `env`. El script `INICIAR-BIRDWATCH.bat`
+> detecta `env` o `.venv` y usa SQLite automáticamente si PostgreSQL no autentica.
 
 La aplicación queda en <http://localhost:3000>.
 
@@ -113,6 +117,9 @@ Los datos que siembra `preparar`:
 
 - **Opción recomendada:** `python manage.py runserver` (levanta web + BirdNET).
 - **Atajo en Windows:** doble clic en **`INICIAR-BIRDWATCH.bat`**.
+
+> El atajo usa el entorno `env` (o `.venv`) y comprueba PostgreSQL antes de arrancar:
+> si no está activo o las credenciales fallan, se inicia con `DB_ENGINE=sqlite`.
 
 La web queda en <http://localhost:3000> y BirdNET en el puerto 8080.
 Para detener todo: `DETENER-BIRDWATCH.bat` o `Ctrl+C` en la consola de `runserver`.
