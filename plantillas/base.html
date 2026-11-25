@@ -36,6 +36,7 @@
         <a class="navegacion-enlace" href="{% url 'ayuda' %}">Ayuda</a>
 
         {% if user.is_authenticated %}
+            <a class="navegacion-enlace" href="{% url 'mi_cuenta' %}">Mi cuenta</a>
             <a class="navegacion-enlace" href="{% url 'avistamiento_nuevo' %}">Registrar ave</a>
             <a class="navegacion-enlace" href="{% url 'identificar' %}">Identificar</a>
             {% if user.is_staff or user.is_superuser %}
@@ -49,7 +50,7 @@
             {% endif %}
             <form class="formulario-salir" method="post" action="{% url 'salir' %}">
                 {% csrf_token %}
-                <button class="navegacion-enlace boton-salir" type="submit" title="Cerrar sesión">Salir ({{ user.username }})</button>
+                <button class="navegacion-enlace boton-salir" type="submit" title="Cerrar sesión">Salir ({{ user.first_name|default:user.username }})</button>
             </form>
         {% else %}
             <a class="navegacion-enlace enlace-destacado" href="{% url 'entrar' %}">Entrar</a>

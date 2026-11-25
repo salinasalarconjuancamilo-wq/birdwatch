@@ -134,8 +134,11 @@ Para detener todo: `DETENER-BIRDWATCH.bat` o `Ctrl+C` en la consola de `runserve
 ### 4.2 Entrar, registrarse y recuperar la clave
 
 - **Iniciar sesión** (`/entrar/`): campos **Correo electrónico** y **Contraseña**.
+  El correo es el identificador de acceso; el `username` interno se genera desde el nombre.
 - **¿No tienes cuenta?** → `/registrarse/` crea un Usuario (no administrador).
 - **¿Ya tienes cuenta?** → `/entrar/` desde el formulario de registro.
+- **Cambiar nombre o correo** → `/cuenta/` (pide la contraseña actual). El `username`
+  se recalcula a partir del nombre; el correo se puede cambiar sin perder la sesión.
 - **¿Olvidaste tu contraseña?** → `/recuperar/` envía un código de 6 dígitos al correo,
   se valida en `/recuperar/verificar/` y se guarda la nueva clave en `/recuperar/nueva-clave/`.
 

@@ -10,10 +10,21 @@ from django.core.validators import validate_email
 from django.utils.text import slugify
 
 from .models import Ave
+from .usuarios import username_desde_nombre
 
 # Formatos y tamaño máximo aceptados para las fotos del carrusel.
 TAMANO_MAXIMO_FOTO = 10 * 1024 * 1024  # 10 MB
 ANCHO_MAXIMO_FOTO = 1280  # píxeles; suficiente para la tarjeta y liviano
+
+
+def validar_nombre(valor):
+    """Nombre de 2 a 50 letras (con acentos, ñ y espacios)."""
+    nombre = valor.strip()
+    if not nombre.replace(" ", "").isalpha():
+        raise ValidationError(
+            "El nombre solo puede contener letras y espacios; no se permiten números ni caracteres especiales."
+        )
+    return nombre
 
 
 def _carpeta_fotos():
@@ -177,13 +188,8 @@ class RegistroForm(forms.Form):
     )
 
     def clean_nombre(self):
-        nombre = self.cleaned_data["nombre"].strip()
         # isalpha() acepta letras con acentos y ñ; se permiten espacios entre palabras.
-        if not nombre.replace(" ", "").isalpha():
-            raise ValidationError(
-                "El nombre solo puede contener letras y espacios; no se permiten números ni caracteres especiales."
-            )
-        return nombre
+        return validar_nombre(self.cleaned_data["nombre"])
 
     def clean_correo(self):
         correo = self.cleaned_data["correo"].strip().lower()
@@ -200,15 +206,90 @@ class RegistroForm(forms.Form):
         if clave and clave != datos.get("contrasena2"):
             self.add_error("contrasena2", "Las contraseñas no coinciden.")
         if clave:
+            nombre = datos.get("nombre", "")
             candidato = get_user_model()(
-                username=datos.get("correo", ""), email=datos.get("correo", ""),
-                first_name=datos.get("nombre", ""),
+                username=username_desde_nombre(nombre), email=datos.get("correo", ""),
+                first_name=nombre,
             )
             try:
                 validate_password(clave, user=candidato)
             except ValidationError as errores:
                 self.add_error("contrasena1", errores.messages[0])
         return datos
+
+
+# ------------------------------------------------------------------- Mi cuenta
+
+
+class CuentaForm(forms.Form):
+    """Editar nombre y correo; el username se recalcula desde el nombre."""
+
+    nombre = forms.CharField(
+        label="Nombre",
+        max_length=50,
+        min_length=2,
+        required=True,
+        error_messages={
+            "required": "Escribe tu nombre.",
+            "min_length": "El nombre debe tener al menos 2 letras.",
+            "max_length": "El nombre no puede tener más de 50 caracteres.",
+        },
+        widget=forms.TextInput(
+            attrs={
+                "placeholder": "Ej.: María José",
+                "autocomplete": "given-name",
+                "minlength": "2",
+                "pattern": r"[A-Za-záéíóúüñÁÉÍÓÚÜÑ ]+",
+                "title": "Solo letras y espacios; mínimo 2 caracteres.",
+            }
+        ),
+    )
+    correo = forms.EmailField(
+        label="Correo electrónico",
+        widget=forms.EmailInput(attrs={"placeholder": "tu@correo.com", "autocomplete": "email"}),
+    )
+    contrasena_actual = forms.CharField(
+        label="Contraseña actual",
+        widget=forms.PasswordInput(attrs={"autocomplete": "current-password"}),
+        error_messages={"required": "Escribe tu contraseña actual para confirmar el cambio."},
+    )
+
+    def __init__(self, *args, usuario=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.usuario = usuario
+        if usuario is not None:
+            self.fields["nombre"].initial = usuario.first_name
+            self.fields["correo"].initial = usuario.email
+
+    def clean_nombre(self):
+        return validar_nombre(self.cleaned_data["nombre"])
+
+    def clean_correo(self):
+        correo = self.cleaned_data["correo"].strip().lower()
+        if len(correo) > 150:
+            raise ValidationError("El correo electrónico es demasiado largo.")
+        consulta = get_user_model().objects.filter(email__iexact=correo)
+        if self.usuario is not None:
+            consulta = consulta.exclude(pk=self.usuario.pk)
+        if consulta.exists():
+            raise ValidationError("Ya existe una cuenta con ese correo electrónico.")
+        return correo
+
+    def clean(self):
+        datos = super().clean()
+        clave = datos.get("contrasena_actual")
+        if self.usuario is not None and clave and not self.usuario.check_password(clave):
+            self.add_error("contrasena_actual", "La contraseña actual no es correcta.")
+        return datos
+
+    def save(self):
+        self.usuario.first_name = self.cleaned_data["nombre"]
+        self.usuario.username = username_desde_nombre(
+            self.cleaned_data["nombre"], excluir_pk=self.usuario.pk
+        )
+        self.usuario.email = self.cleaned_data["correo"]
+        self.usuario.save(update_fields=["first_name", "username", "email"])
+        return self.usuario
 
 
 class RecuperarForm(forms.Form):

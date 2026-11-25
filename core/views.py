@@ -3,7 +3,13 @@ from pathlib import Path
 
 from django.conf import settings
 from django.contrib import messages
-from django.contrib.auth import authenticate, get_user_model, login, logout
+from django.contrib.auth import (
+    authenticate,
+    get_user_model,
+    login,
+    logout,
+    update_session_auth_hash,
+)
 from django.contrib.auth.decorators import login_required
 from django.core.mail import send_mail
 from django.http import FileResponse, JsonResponse
@@ -18,6 +24,7 @@ from contenido.models import Noticia, secciones_activas
 from .birdnet import CONFIANZA_MINIMA, analizar_audio, comprobar_servicio
 from .forms import (
     AveForm,
+    CuentaForm,
     IngresoForm,
     NuevaClaveForm,
     RecuperarForm,
@@ -33,6 +40,7 @@ from .models import (
     Deteccion,
 )
 from .permisos import solo_superadmin
+from .usuarios import username_desde_nombre
 
 
 def inicio(request):
@@ -243,7 +251,7 @@ def registrarse(request):
     if request.method == "POST" and form.is_valid():
         datos = form.cleaned_data
         usuario = get_user_model().objects.create_user(
-            username=datos["correo"],
+            username=username_desde_nombre(datos["nombre"]),
             email=datos["correo"],
             first_name=datos["nombre"].strip(),
             password=datos["contrasena1"],
@@ -252,6 +260,22 @@ def registrarse(request):
         messages.success(request, "¡Bienvenido a BirdWatch! Tu cuenta ya está lista.")
         return redirect("inicio")
     return render(request, "registrarse.html", {"form": form})
+
+
+@login_required
+def mi_cuenta(request):
+    """Permitir cambiar nombre y correo sin perder la sesión."""
+    usuario = request.user
+    if request.method == "POST":
+        formulario = CuentaForm(request.POST, usuario=usuario)
+        if formulario.is_valid():
+            usuario = formulario.save()
+            update_session_auth_hash(request, usuario)
+            messages.success(request, "Tu cuenta se actualizó correctamente.")
+            return redirect("mi_cuenta")
+    else:
+        formulario = CuentaForm(usuario=usuario)
+    return render(request, "cuenta.html", {"form": formulario, "usuario": usuario})
 
 
 def recuperar(request):

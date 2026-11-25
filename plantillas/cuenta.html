@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block titulo %}Mi cuenta{% endblock %}
+
+{% block contenido %}
+<section class="seccion-login">
+    <div class="tarjeta-login">
+        <img class="login-logo" src="{% static 'img/logo.png' %}" alt="Logotipo de BirdWatch" width="88" height="88">
+        <h1 class="login-titulo">Mi cuenta</h1>
+        <p class="login-sub">Actualiza tu nombre o tu correo electrónico. Ingresas siempre con el correo.</p>
+
+        {% for error in form.non_field_errors %}<p class="login-error" role="alert">{{ error }}</p>{% endfor %}
+
+        <form method="post" action="{% url 'mi_cuenta' %}" class="formulario-login">
+            {% csrf_token %}
+            <div class="campo">
+                <label class="campo-etiqueta" for="id-nombre">Nombre</label>
+                <input type="text" name="nombre" id="id-nombre" autocomplete="given-name" placeholder="Ej.: María José" value="{{ form.nombre.value|default:'' }}" required minlength="2" maxlength="50" pattern="[A-Za-záéíóúüñÁÉÍÓÚÜÑ ]+" title="Solo letras y espacios; entre 2 y 50 caracteres.">
+                <p class="campo-ayuda">El nombre se usa para generar tu usuario interno (sin acentos).</p>
+                {% for error in form.nombre.errors %}<p class="campo-error">{{ error }}</p>{% endfor %}
+            </div>
+            <div class="campo">
+                <label class="campo-etiqueta" for="id-correo">Correo electrónico</label>
+                <input type="email" name="correo" id="id-correo" autocomplete="email" placeholder="tu@correo.com" value="{{ form.correo.value|default:'' }}" required>
+                <p class="campo-ayuda">Con este correo inicias sesión y recibes la recuperación de clave.</p>
+                {% for error in form.correo.errors %}<p class="campo-error">{{ error }}</p>{% endfor %}
+            </div>
+            <div class="campo">
+                <label class="campo-etiqueta" for="id-contrasena_actual">Contraseña actual</label>
+                <input type="password" name="contrasena_actual" id="id-contrasena_actual" autocomplete="current-password" required>
+                <p class="campo-ayuda">Necesaria para confirmar que eres tú.</p>
+                {% for error in form.contrasena_actual.errors %}<p class="campo-error">{{ error }}</p>{% endfor %}
+            </div>
+            <button type="submit" class="boton-entrar">Guardar cambios</button>
+        </form>
+
+        <a class="login-volver" href="{% url 'inicio' %}">&#8592; Volver al inicio</a>
+    </div>
+</section>
+{% endblock %}

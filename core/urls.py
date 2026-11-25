@@ -9,6 +9,7 @@ urlpatterns = [
     path("recuperar/", views.recuperar, name="recuperar"),
     path("recuperar/verificar/", views.recuperar_verificar, name="recuperar_verificar"),
     path("recuperar/nueva-clave/", views.recuperar_nueva_clave, name="recuperar_nueva_clave"),
+    path("cuenta/", views.mi_cuenta, name="mi_cuenta"),
     path("salir/", views.salir, name="salir"),
     path("identificar/", views.identificar, name="identificar"),
     path("analizar/", views.analizar, name="analizar"),
