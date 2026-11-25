@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Ave, Deteccion
+from .models import Ave, ControlAcceso, Deteccion
 
 
 @admin.register(Ave)
@@ -17,3 +17,10 @@ class DeteccionAdmin(admin.ModelAdmin):
     list_filter = ("usuario",)
     search_fields = ("especie_es", "especie_en", "nombre_cientifico")
     readonly_fields = [campo.name for campo in Deteccion._meta.fields]
+
+
+@admin.register(ControlAcceso)
+class ControlAccesoAdmin(admin.ModelAdmin):
+    list_display = ("usuario", "intentos_fallidos", "bloqueado_hasta")
+    search_fields = ("usuario__email", "usuario__username")
+    list_filter = ("bloqueado_hasta",)

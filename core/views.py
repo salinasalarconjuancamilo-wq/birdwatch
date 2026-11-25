@@ -24,7 +24,14 @@ from .forms import (
     RegistroForm,
     VerificarCodigoForm,
 )
-from .models import Ave, CodigoRecuperacion, Deteccion
+from .models import (
+    INTENTOS_MAXIMOS,
+    MINUTOS_BLOQUEO,
+    Ave,
+    CodigoRecuperacion,
+    ControlAcceso,
+    Deteccion,
+)
 from .permisos import solo_superadmin
 
 
@@ -155,7 +162,7 @@ def _siguiente_seguro(request, form):
 
 
 def entrar(request):
-    """Ingreso con correo electrónico y contraseña."""
+    """Ingreso con correo y contraseña: 3 intentos y bloqueo temporal de la cuenta."""
     if request.user.is_authenticated:
         return redirect("identificar")
 
@@ -175,17 +182,54 @@ def entrar(request):
                 ).first()
             else:
                 usuario = usuarios.filter(username__iexact=identificador).first()
+
+            maximo = getattr(settings, "INTENTOS_ACCESO_MAXIMOS", INTENTOS_MAXIMOS)
+            minutos = getattr(settings, "BLOQUEO_ACCESO_MINUTOS", MINUTOS_BLOQUEO)
+
+            if usuario is not None:
+                control = ControlAcceso.objects.filter(usuario=usuario).first()
+                if control and control.esta_bloqueado():
+                    segundos = (control.bloqueado_hasta - timezone.now()).total_seconds()
+                    restantes = max(1, int(segundos // 60) + 1)
+                    form.add_error(
+                        None,
+                        f"Tu cuenta está bloqueada temporalmente. Intenta de nuevo en {restantes} "
+                        "minuto(s) o recupera tu contraseña.",
+                    )
+                    return render(request, "login.html", {"form": form})
+
             autenticado = None
             if usuario is not None and usuario.is_active:
                 autenticado = authenticate(
                     request, username=usuario.username, password=form.cleaned_data["contrasena"]
                 )
             if autenticado is not None:
+                ControlAcceso.registrar_acierto(usuario)
                 login(request, autenticado)
                 messages.success(request, f"¡Hola de nuevo, {autenticado.first_name or autenticado.username}!")
                 destino = _siguiente_seguro(request, form)
                 return redirect(destino or "inicio")
-            form.add_error(None, "Correo electrónico o contraseña incorrectos.")
+
+            if usuario is not None:
+                control = ControlAcceso.registrar_fallo(usuario)
+                if control.esta_bloqueado():
+                    form.add_error(
+                        None,
+                        f"Has superado los {maximo} intentos fallidos. Tu cuenta queda bloqueada "
+                        f"durante {minutos} minutos. Puedes recuperar tu contraseña.",
+                    )
+                else:
+                    restantes = maximo - control.intentos_fallidos
+                    aviso = (
+                        "Te queda 1 intento."
+                        if restantes == 1
+                        else f"Te quedan {restantes} intentos."
+                    )
+                    form.add_error(
+                        None, f"Correo electrónico o contraseña incorrectos. {aviso}"
+                    )
+            else:
+                form.add_error(None, "Correo electrónico o contraseña incorrectos.")
     else:
         form = IngresoForm(initial=inicial)
     return render(request, "login.html", {"form": form})
@@ -290,6 +334,8 @@ def recuperar_nueva_clave(request):
     if request.method == "POST" and form.is_valid():
         usuario.set_password(form.cleaned_data["contrasena1"])
         usuario.save(update_fields=["password"])
+        # Cambiar la clave también levanta un bloqueo por intentos fallidos.
+        ControlAcceso.objects.filter(usuario=usuario).update(intentos_fallidos=0, bloqueado_hasta=None)
         registro.usado_en = timezone.now()
         registro.save(update_fields=["usado_en"])
         for clave in ("recuperar_correo", "recuperar_usuario_id", "recuperar_codigo_id"):

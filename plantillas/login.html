@@ -29,6 +29,7 @@
                     <button type="button" class="mostrar-clave" id="mostrar-clave" aria-label="Mostrar u ocultar la contraseña" aria-pressed="false">👁</button>
                 </span>
                 {% for error in form.contrasena.errors %}<p class="campo-error">{{ error }}</p>{% endfor %}
+                <p class="campo-ayuda">Tienes 3 intentos; después de 3 fallos la cuenta se bloquea durante 15 minutos.</p>
             </div>
             <p class="login-olvidaste"><a href="{% url 'recuperar' %}">¿Olvidaste tu contraseña?</a></p>
             <button type="submit" class="boton-entrar">Entrar</button>

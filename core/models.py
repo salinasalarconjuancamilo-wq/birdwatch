@@ -1,6 +1,12 @@
+from datetime import timedelta
+
 from django.conf import settings
 from django.db import models
 from django.utils import timezone
+
+# Número de fallos permitidos y duración del bloqueo de la cuenta.
+INTENTOS_MAXIMOS = 3
+MINUTOS_BLOQUEO = 15
 
 
 class Ave(models.Model):
@@ -84,3 +90,47 @@ class CodigoRecuperacion(models.Model):
 
         cls.objects.filter(usuario=usuario, usado_en__isnull=True).update(usado_en=timezone.now())
         return cls.objects.create(usuario=usuario, codigo=f"{secrets.randbelow(1000000):06d}")
+
+
+class ControlAcceso(models.Model):
+    """Intentos fallidos y bloqueo temporal de una cuenta de usuario."""
+
+    usuario = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="control_acceso",
+        verbose_name="usuario",
+    )
+    intentos_fallidos = models.PositiveSmallIntegerField("intentos fallidos", default=0)
+    bloqueado_hasta = models.DateTimeField("bloqueado hasta", null=True, blank=True)
+
+    class Meta:
+        verbose_name = "control de acceso"
+        verbose_name_plural = "controles de acceso"
+
+    def __str__(self):
+        return f"Acceso de {self.usuario}"
+
+    def esta_bloqueado(self):
+        return bool(self.bloqueado_hasta and self.bloqueado_hasta > timezone.now())
+
+    @classmethod
+    def registrar_fallo(cls, usuario):
+        """Suma un fallo; a los 3 bloquea la cuenta durante 15 minutos."""
+        control, _ = cls.objects.get_or_create(usuario=usuario)
+        ahora = timezone.now()
+        if control.bloqueado_hasta and control.bloqueado_hasta <= ahora:
+            # El bloqueo ya venció: se reinicia la cuenta de intentos.
+            control.intentos_fallidos = 0
+            control.bloqueado_hasta = None
+        control.intentos_fallidos += 1
+        if control.intentos_fallidos >= getattr(settings, "INTENTOS_ACCESO_MAXIMOS", INTENTOS_MAXIMOS):
+            minutos = getattr(settings, "BLOQUEO_ACCESO_MINUTOS", MINUTOS_BLOQUEO)
+            control.bloqueado_hasta = ahora + timedelta(minutes=minutos)
+        control.save(update_fields=["intentos_fallidos", "bloqueado_hasta"])
+        return control
+
+    @classmethod
+    def registrar_acierto(cls, usuario):
+        """Un inicio de sesión correcto limpia los intentos y el bloqueo."""
+        cls.objects.filter(usuario=usuario).update(intentos_fallidos=0, bloqueado_hasta=None)
