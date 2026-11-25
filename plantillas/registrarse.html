@@ -12,11 +12,12 @@
 
         {% for error in form.non_field_errors %}<p class="login-error" role="alert">{{ error }}</p>{% endfor %}
 
-        <form method="post" action="{% url 'registrarse' %}" class="formulario-login" novalidate>
+        <form method="post" action="{% url 'registrarse' %}" class="formulario-login">
             {% csrf_token %}
             <div class="campo">
                 <label class="campo-etiqueta" for="id-nombre">Nombre</label>
-                <input type="text" name="nombre" id="id-nombre" autocomplete="given-name" value="{{ form.nombre.value|default:'' }}">
+                <input type="text" name="nombre" id="id-nombre" autocomplete="given-name" placeholder="Ej.: María José" value="{{ form.nombre.value|default:'' }}" required minlength="2" pattern="[A-Za-záéíóúüñÁÉÍÓÚÜÑ ]+" title="Solo letras y espacios; mínimo 2 caracteres.">
+                <p class="campo-ayuda">Mínimo 2 caracteres. Solo letras (puedes usar espacios entre palabras).</p>
                 {% for error in form.nombre.errors %}<p class="campo-error">{{ error }}</p>{% endfor %}
             </div>
             <div class="campo">

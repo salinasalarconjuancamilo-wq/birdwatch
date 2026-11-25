@@ -143,7 +143,26 @@ class IngresoForm(forms.Form):
 class RegistroForm(forms.Form):
     """Creación de una cuenta de Usuario (nunca administrador)."""
 
-    nombre = forms.CharField(label="Nombre", max_length=150, required=False)
+    nombre = forms.CharField(
+        label="Nombre",
+        max_length=150,
+        min_length=2,
+        required=True,
+        error_messages={
+            "required": "Escribe tu nombre.",
+            "min_length": "El nombre debe tener al menos 2 letras.",
+            "max_length": "El nombre no puede tener más de 150 caracteres.",
+        },
+        widget=forms.TextInput(
+            attrs={
+                "placeholder": "Ej.: María José",
+                "autocomplete": "given-name",
+                "minlength": "2",
+                "pattern": r"[A-Za-záéíóúüñÁÉÍÓÚÜÑ ]+",
+                "title": "Solo letras y espacios; mínimo 2 caracteres.",
+            }
+        ),
+    )
     correo = forms.EmailField(
         label="Correo electrónico",
         widget=forms.EmailInput(attrs={"placeholder": "tu@correo.com", "autocomplete": "email"}),
@@ -156,6 +175,13 @@ class RegistroForm(forms.Form):
         label="Confirmar contraseña",
         widget=forms.PasswordInput(attrs={"autocomplete": "new-password"}),
     )
+
+    def clean_nombre(self):
+        nombre = self.cleaned_data["nombre"].strip()
+        # isalpha() acepta letras con acentos y ñ; se permiten espacios entre palabras.
+        if not nombre.replace(" ", "").isalpha():
+            raise ValidationError("El nombre solo puede contener letras y espacios entre palabras.")
+        return nombre
 
     def clean_correo(self):
         correo = self.cleaned_data["correo"].strip().lower()
