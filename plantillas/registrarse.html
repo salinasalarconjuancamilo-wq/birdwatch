@@ -16,8 +16,8 @@
             {% csrf_token %}
             <div class="campo">
                 <label class="campo-etiqueta" for="id-nombre">Nombre</label>
-                <input type="text" name="nombre" id="id-nombre" autocomplete="given-name" placeholder="Ej.: María José" value="{{ form.nombre.value|default:'' }}" required minlength="2" pattern="[A-Za-záéíóúüñÁÉÍÓÚÜÑ ]+" title="Solo letras y espacios; mínimo 2 caracteres.">
-                <p class="campo-ayuda">Mínimo 2 caracteres. Solo letras (puedes usar espacios entre palabras).</p>
+                <input type="text" name="nombre" id="id-nombre" autocomplete="given-name" placeholder="Ej.: María José" value="{{ form.nombre.value|default:'' }}" required minlength="2" maxlength="50" pattern="[A-Za-záéíóúüñÁÉÍÓÚÜÑ ]+" title="Solo letras y espacios; entre 2 y 50 caracteres.">
+                <p class="campo-ayuda">Entre 2 y 50 caracteres. Solo letras y espacios; sin números ni caracteres especiales.</p>
                 {% for error in form.nombre.errors %}<p class="campo-error">{{ error }}</p>{% endfor %}
             </div>
             <div class="campo">

@@ -145,13 +145,13 @@ class RegistroForm(forms.Form):
 
     nombre = forms.CharField(
         label="Nombre",
-        max_length=150,
+        max_length=50,
         min_length=2,
         required=True,
         error_messages={
             "required": "Escribe tu nombre.",
             "min_length": "El nombre debe tener al menos 2 letras.",
-            "max_length": "El nombre no puede tener más de 150 caracteres.",
+            "max_length": "El nombre no puede tener más de 50 caracteres.",
         },
         widget=forms.TextInput(
             attrs={
@@ -180,7 +180,9 @@ class RegistroForm(forms.Form):
         nombre = self.cleaned_data["nombre"].strip()
         # isalpha() acepta letras con acentos y ñ; se permiten espacios entre palabras.
         if not nombre.replace(" ", "").isalpha():
-            raise ValidationError("El nombre solo puede contener letras y espacios entre palabras.")
+            raise ValidationError(
+                "El nombre solo puede contener letras y espacios; no se permiten números ni caracteres especiales."
+            )
         return nombre
 
     def clean_correo(self):
