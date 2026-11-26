@@ -48,6 +48,13 @@
                     <td class="admin-acciones">
                         <a class="boton-secundario" href="{% url 'parque_fotos' lugar.pk %}">Fotos</a>
                         <a class="boton-secundario" href="{% url 'lugar_editar' lugar.pk %}">Datos</a>
+                        <form method="post" action="{% url 'lugar_eliminar' lugar.pk %}"
+                              onsubmit="return confirm('¿Eliminar el parque «{{ lugar.nombre|escapejs }}»? Se borrarán también sus fotos y su página. Esta acción no se puede deshacer.');">
+                            {% csrf_token %}
+                            <input type="hidden" name="volver" value="parques_admin">
+                            <button class="boton-peligro" type="submit"
+                                    aria-label="Eliminar el parque {{ lugar.nombre }}">Eliminar parque</button>
+                        </form>
                         <a class="boton-secundario" href="{% url 'parque_detalle' lugar.slug %}"
                            target="_blank" rel="noopener">Ver página</a>
                     </td>

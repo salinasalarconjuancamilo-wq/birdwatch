@@ -176,8 +176,15 @@ def lugar_eliminar(request, pk):
         if foto.imagen:
             foto.imagen.delete(save=False)
     lugar.delete()
-    messages.success(request, f"Se eliminó el lugar «{nombre}».")
-    return redirect("contenido_admin")
+    messages.success(request, f"Se eliminó el parque «{nombre}».")
+    # El botón del carrusel de parques vuelve a ese panel; el del panel
+    # general vuelve al panel de contenido. Solo se aceptan destinos fijos.
+    destino = (
+        "parques_admin"
+        if request.POST.get("volver") == "parques_admin"
+        else "contenido_admin"
+    )
+    return redirect(destino)
 
 
 @solo_administrador

@@ -289,6 +289,8 @@ Solo el superadministrador. Entra a `/carrusel/` (enlace **Carrusel** en la cabe
 
 - **Añadir un ave** con foto (JPG/PNG ≤ 10 MB; se reduce a 1280 px).
 - **Editar**, **ordenar** (▲ ▼), **ocultar/mostrar** y **eliminar**.
+- **Eliminar parque**: desde `/contenido/admin/parques/` (apartado 10) hay un botón
+  **Eliminar parque** en cada fila y en la página del carrusel. Borra también sus fotos.
 - Los cambios se ven al instante en `/`.
 
 También se puede gestionar desde `/admin/`, pero el panel Carrusel es el recomendado.
@@ -337,6 +339,10 @@ Entra a `/contenido/admin/parques/` (enlace **Parques admin** en la cabecera) y 
 - **Ordenar** con ▲ ▼.
 - **Ocultar/mostrar** una foto sin borrarla.
 - **Eliminar** la foto (también borra el archivo de `medios/parques/`).
+
+Para borrar el parque completo, pulsa **Eliminar parque** en el listado
+`/contenido/admin/parques/` o en la cabecera de su carrusel de fotos. Pide
+confirmación y elimina también la portada, las fotos y la página del parque.
 
 Los cambios se ven de inmediato en la página pública del parque. El panel de fotos
 también es accesible desde el botón **Editar carrusel** en la propia página del parque.
