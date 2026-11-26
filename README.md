@@ -142,8 +142,18 @@ Para detener todo: `DETENER-BIRDWATCH.bat` o `Ctrl+C` en la consola de `runserve
 - **¿Olvidaste tu contraseña?** → `/recuperar/` envía un código de 6 dígitos al correo,
   se valida en `/recuperar/verificar/` y se guarda la nueva clave en `/recuperar/nueva-clave/`.
 
-En desarrollo el correo se imprime en la consola de Django (`EMAIL_BACKEND=console`). Para enviarlo
-de verdad configura estas variables antes de iniciar:
+El código vale 15 minutos y se puede usar una sola vez. Cambiar la clave también
+levanta el bloqueo por intentos fallidos y permite entrar con la nueva contraseña.
+
+En desarrollo (sin SMTP) el correo se imprime en la consola de Django y, para que
+el flujo se pueda probar sin leer la consola, **el código se muestra en la pantalla
+de verificación** (`/recuperar/verificar/`) bajo el aviso «Modo local». Con SMTP
+configurado el código nunca se muestra en la web: solo llega al correo.
+
+> Las cuentas sembradas con correos `@birdwatch.local` no son enrutables por SMTP.
+> Si vas a configurar envío real, cambia primero el correo en **Mi cuenta** (`/cuenta/`).
+
+Para enviar el correo de verdad configura estas variables antes de iniciar:
 
 ```
 set EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend

@@ -10,6 +10,14 @@
         <h1 class="login-titulo">Verificar código</h1>
         <p class="login-sub">Escribe el código de 6 dígitos que enviamos a tu correo electrónico.</p>
 
+        {% if codigo_local %}
+        <div class="codigo-local" role="status">
+            <span>Modo local (sin correo saliente): tu código es</span>
+            <strong class="codigo-local-valor">{{ codigo_local }}</strong>
+            <small>Válido solo en este equipo. No lo compartas.</small>
+        </div>
+        {% endif %}
+
         {% for error in form.non_field_errors %}<p class="login-error" role="alert">{{ error }}</p>{% endfor %}
 
         <form method="post" action="{% url 'recuperar_verificar' %}" class="formulario-login" novalidate>

@@ -1,11 +1,15 @@
 """Pruebas del control de intentos de inicio de sesión."""
+import io
+import re
+from contextlib import redirect_stdout
 from datetime import timedelta
 
 from django.contrib.auth import get_user_model
+from django.core import mail
 from django.test import TestCase, override_settings
 from django.utils import timezone
 
-from .models import ControlAcceso
+from .models import CodigoRecuperacion, ControlAcceso
 from .usuarios import username_desde_nombre
 
 
@@ -215,3 +219,116 @@ class ValidacionCuentaTests(TestCase):
         self.assertEqual(respuesta.status_code, 404)
         self.assertContains(respuesta, "Página no encontrada", status_code=404)
         self.assertNotContains(respuesta, "Traceback", status_code=404)
+
+
+class RecuperarContrasenaTests(TestCase):
+    """El flujo de recuperación funciona con correo real y sin SMTP."""
+
+    LOCAL = "django.core.mail.backends.locmem.EmailBackend"
+    CONSOLA = "django.core.mail.backends.console.EmailBackend"
+
+    def setUp(self):
+        self.usuario = get_user_model().objects.create_user(
+            username="recuperar",
+            email="recuperar@example.com",
+            password="ClaveAntigua123!",
+        )
+        mail.outbox = []
+
+    def _codigo_del_correo(self):
+        return re.search(r"\b(\d{6})\b", mail.outbox[0].body).group(1)
+
+    @override_settings(EMAIL_BACKEND=LOCAL)
+    def test_flujo_completo_cambia_la_clave_y_permite_entrar(self):
+        respuesta = self.client.post("/recuperar/", {"correo": self.usuario.email})
+        self.assertRedirects(respuesta, "/recuperar/verificar/")
+        self.assertEqual(len(mail.outbox), 1)
+
+        codigo = self._codigo_del_correo()
+        respuesta = self.client.post(
+            "/recuperar/verificar/", {"correo": self.usuario.email, "codigo": codigo}
+        )
+        self.assertRedirects(respuesta, "/recuperar/nueva-clave/")
+
+        respuesta = self.client.post(
+            "/recuperar/nueva-clave/",
+            {"contrasena1": "ClaveNueva456!", "contrasena2": "ClaveNueva456!"},
+        )
+        self.assertRedirects(respuesta, "/entrar/")
+        self.usuario.refresh_from_db()
+        self.assertTrue(self.usuario.check_password("ClaveNueva456!"))
+        self.assertEqual(
+            self.client.post(
+                "/entrar/",
+                {"correo": self.usuario.email, "contrasena": "ClaveNueva456!"},
+            ).status_code,
+            302,
+        )
+
+    @override_settings(EMAIL_BACKEND=LOCAL)
+    def test_codigo_incorrecto_no_permite_cambiar_la_clave(self):
+        self.client.post("/recuperar/", {"correo": self.usuario.email})
+        respuesta = self.client.post(
+            "/recuperar/verificar/", {"correo": self.usuario.email, "codigo": "000000"}
+        )
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertContains(respuesta, "El código no es válido o ya venció")
+        self.assertNotIn("recuperar_usuario_id", self.client.session)
+
+    @override_settings(EMAIL_BACKEND=LOCAL)
+    def test_codigo_ya_usado_no_se_puede_reutilizar(self):
+        self.client.post("/recuperar/", {"correo": self.usuario.email})
+        codigo = self._codigo_del_correo()
+        self.client.post(
+            "/recuperar/verificar/", {"correo": self.usuario.email, "codigo": codigo}
+        )
+        self.client.post(
+            "/recuperar/nueva-clave/",
+            {"contrasena1": "ClaveNueva456!", "contrasena2": "ClaveNueva456!"},
+        )
+        respuesta = self.client.post(
+            "/recuperar/verificar/", {"correo": self.usuario.email, "codigo": codigo}
+        )
+        self.assertContains(respuesta, "El código no es válido o ya venció")
+        self.usuario.refresh_from_db()
+        self.assertTrue(self.usuario.check_password("ClaveNueva456!"))
+
+    @override_settings(EMAIL_BACKEND=CONSOLA, DEBUG=False)
+    def test_sin_smtp_el_codigo_se_muestra_en_la_pagina(self):
+        with redirect_stdout(io.StringIO()):
+            respuesta = self.client.post("/recuperar/", {"correo": self.usuario.email})
+        self.assertRedirects(respuesta, "/recuperar/verificar/")
+        pagina = self.client.get("/recuperar/verificar/")
+        codigo = self.client.session["recuperar_codigo_local"]
+        self.assertContains(pagina, "Modo local")
+        self.assertContains(pagina, codigo)
+
+        respuesta = self.client.post(
+            "/recuperar/verificar/", {"correo": self.usuario.email, "codigo": codigo}
+        )
+        self.assertRedirects(respuesta, "/recuperar/nueva-clave/")
+        self.assertNotIn("recuperar_codigo_local", self.client.session)
+
+    @override_settings(EMAIL_BACKEND=LOCAL)
+    def test_correo_desconocido_no_revela_si_esta_registrado(self):
+        respuesta = self.client.post("/recuperar/", {"correo": "nadie@example.com"})
+        self.assertEqual(respuesta.status_code, 302)
+        self.assertEqual(respuesta["Location"], "/recuperar/verificar/")
+        self.assertEqual(len(mail.outbox), 0)
+        self.assertContains(
+            self.client.get("/recuperar/verificar/"),
+            "Si el correo está registrado",
+        )
+        self.assertFalse(CodigoRecuperacion.objects.exists())
+
+    @override_settings(
+        EMAIL_BACKEND="django.core.mail.backends.smtp.EmailBackend",
+        DEBUG=False,
+        EMAIL_HOST="localhost",
+        EMAIL_PORT=1,
+    )
+    def test_fallo_smtp_no_envia_a_la_pantalla_de_verificacion(self):
+        respuesta = self.client.post("/recuperar/", {"correo": self.usuario.email})
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertContains(respuesta, "No se pudo enviar el correo")
+        self.assertNotIn("recuperar_correo", self.client.session)

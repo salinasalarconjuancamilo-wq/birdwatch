@@ -283,10 +283,18 @@ def recuperar(request):
     form = RecuperarForm(request.POST or None)
     if request.method == "POST" and form.is_valid():
         correo = form.cleaned_data["correo"].strip()
+        # Sin SMTP el correo solo se imprime en la consola del servidor. En ese
+        # caso mostramos el código en la propia web para que el flujo se pueda
+        # probar en local; con SMTP real nunca se muestra.
+        modo_local = settings.EMAIL_BACKEND.endswith("console.EmailBackend")
         enviados = 0
+        fallo_envio = False
+        codigo_local = ""
         for usuario in get_user_model().objects.filter(email__iexact=correo):
             registro = CodigoRecuperacion.crear(usuario)
             minutos = getattr(settings, "CODIGO_RECUPERACION_MINUTOS", 15)
+            if modo_local:
+                codigo_local = registro.codigo
             try:
                 send_mail(
                     "Tu código de recuperación de BirdWatch",
@@ -303,13 +311,30 @@ def recuperar(request):
                 )
                 enviados += 1
             except Exception:
-                messages.error(
-                    request,
-                    "No se pudo enviar el correo. Revisa la configuración SMTP e inténtalo de nuevo.",
-                )
-        request.session["recuperar_correo"] = correo
+                fallo_envio = True
+                if not modo_local:
+                    messages.error(
+                        request,
+                        "No se pudo enviar el correo. Revisa la configuración SMTP "
+                        "e inténtalo de nuevo.",
+                    )
+        # Si hay SMTP y el envío falló, no enviamos a una pantalla donde el
+        # usuario nunca podrá obtener el código.
+        if fallo_envio and not enviados and not modo_local:
+            return render(request, "recuperar.html", {"form": form})
         if enviados:
             messages.info(request, "Enviamos un código de verificación a tu correo electrónico.")
+        else:
+            # Mensaje único: no revelamos si el correo está registrado.
+            messages.info(
+                request,
+                "Si el correo está registrado, recibirás un código de verificación.",
+            )
+        request.session["recuperar_correo"] = correo
+        if codigo_local:
+            request.session["recuperar_codigo_local"] = codigo_local
+        else:
+            request.session.pop("recuperar_codigo_local", None)
         return redirect("recuperar_verificar")
     return render(request, "recuperar.html", {"form": form})
 
@@ -339,8 +364,16 @@ def recuperar_verificar(request):
         else:
             request.session["recuperar_usuario_id"] = registro_valido.usuario_id
             request.session["recuperar_codigo_id"] = registro_valido.pk
+            request.session.pop("recuperar_codigo_local", None)
             return redirect("recuperar_nueva_clave")
-    return render(request, "recuperar_verificar.html", {"form": form})
+    return render(
+        request,
+        "recuperar_verificar.html",
+        {
+            "form": form,
+            "codigo_local": request.session.get("recuperar_codigo_local", ""),
+        },
+    )
 
 
 def recuperar_nueva_clave(request):
@@ -362,7 +395,12 @@ def recuperar_nueva_clave(request):
         ControlAcceso.objects.filter(usuario=usuario).update(intentos_fallidos=0, bloqueado_hasta=None)
         registro.usado_en = timezone.now()
         registro.save(update_fields=["usado_en"])
-        for clave in ("recuperar_correo", "recuperar_usuario_id", "recuperar_codigo_id"):
+        for clave in (
+            "recuperar_correo",
+            "recuperar_usuario_id",
+            "recuperar_codigo_id",
+            "recuperar_codigo_local",
+        ):
             request.session.pop(clave, None)
         messages.success(request, "Contraseña actualizada. Ya puedes iniciar sesión.")
         return redirect("entrar")

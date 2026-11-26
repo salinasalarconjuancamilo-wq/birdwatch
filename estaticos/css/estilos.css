@@ -707,6 +707,28 @@ a { color: var(--verde-medio); }
 .login-titulo { margin: 6px 0 4px; color: var(--verde-bosque); font-size: 1.6rem; }
 .login-sub { margin: 0 0 22px; color: var(--texto-gris); font-size: 0.96rem; }
 
+/* Código de recuperación cuando no hay correo saliente configurado. */
+.codigo-local {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    align-items: center;
+    margin: -8px 0 20px;
+    padding: 14px;
+    border: 2px dashed var(--verde-claro);
+    border-radius: 14px;
+    background: var(--verde-niebla);
+    color: var(--verde-noche);
+    font-size: 0.9rem;
+}
+.codigo-local-valor {
+    font-size: 1.9rem;
+    font-weight: 800;
+    letter-spacing: 0.28em;
+    color: var(--verde-bosque);
+}
+.codigo-local small { color: var(--texto-gris); }
+
 .formulario-login { display: flex; flex-direction: column; gap: 16px; text-align: left; }
 
 .campo { display: flex; flex-direction: column; gap: 6px; }
