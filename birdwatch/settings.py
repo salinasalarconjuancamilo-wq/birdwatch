@@ -14,10 +14,23 @@ SECRET_KEY = os.environ.get(
     "django-insecure-birdwatch-san-antonio-del-tequendama-cambiar-en-produccion",
 )
 
-# True solo para desarrollo local. En producción usar DEBUG=False y un servidor WSGI.
-DEBUG = os.environ.get("DJANGO_DEBUG", "1") == "1"
+# Seguridad: DEBUG se desactiva por defecto. Solo se activa de forma explícita
+# para desarrollo local con DJANGO_DEBUG=1 (nunca en un despliegue real).
+DEBUG = os.environ.get("DJANGO_DEBUG", "0").strip().lower() in {
+    "1", "true", "yes", "on"
+}
 
-ALLOWED_HOSTS = ["*"]
+# En producción define DJANGO_ALLOWED_HOSTS="birdwatch.example.com,www.example.com".
+# Sin configuración solo se atienden los hosts locales.
+_hosts_configurados = [
+    host.strip()
+    for host in os.environ.get("DJANGO_ALLOWED_HOSTS", "").split(",")
+    if host.strip()
+]
+ALLOWED_HOSTS = ["localhost", "127.0.0.1", "[::1]", *_hosts_configurados]
+
+# El límite de carga de Django (2.5 MB por defecto) se captura en el middleware
+# y en la vista de comentarios para responder con un mensaje controlado.
 
 # Orígenes adicionales confiables para CSRF, separados por comas en la
 # variable de entorno DJANGO_CSRF_ORIGINS (por ejemplo
@@ -44,6 +57,8 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    # Convierte peticiones excesivamente grandes en una respuesta 400 segura.
+    "birdwatch.middleware.LimiteCargaMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",

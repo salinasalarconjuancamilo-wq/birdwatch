@@ -14,6 +14,12 @@ rem    env\Scripts\python.exe manage.py preparar
 rem ============================================================
 title BirdWatch - arranque
 cd /d "%~dp0"
+
+rem ---------- Modo desarrollo ----------
+rem  Por seguridad DJANGO_DEBUG es False por defecto; este arranque local lo
+rem  activa para poder ver los archivos estaticos sin collectstatic.
+set "DJANGO_DEBUG=1"
+
 echo.
 echo  === BirdWatch - San Antonio del Tequendama ===
 echo.

@@ -2,10 +2,11 @@
 from datetime import timedelta
 
 from django.contrib.auth import get_user_model
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.utils import timezone
 
 from .models import ControlAcceso
+from .usuarios import username_desde_nombre
 
 
 class BloqueoAccesoTests(TestCase):
@@ -144,3 +145,73 @@ class CuentaTests(TestCase):
         self.assertIn("La contraseña actual no es correcta.", respuesta.content.decode())
         self.usuario.refresh_from_db()
         self.assertEqual(self.usuario.email, "maria@example.com")
+
+
+class ValidacionCuentaTests(TestCase):
+    """BUG-11 y BUG-12: dominios enrutables y nombres no reservados."""
+
+    def setUp(self):
+        self.usuario = get_user_model().objects.create_user(
+            username="maria-jose",
+            first_name="María José",
+            email="maria@example.com",
+            password="ClaveSegura123!",
+        )
+        self.client.force_login(self.usuario)
+
+    def _cambiar(self, nombre="María José", correo="nueva@example.com"):
+        return self.client.post(
+            "/cuenta/",
+            {
+                "nombre": nombre,
+                "correo": correo,
+                "contrasena_actual": "ClaveSegura123!",
+            },
+        )
+
+    def test_correo_localhost_rechazado(self):
+        respuesta = self._cambiar(correo="test@localhost")
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertContains(respuesta, "dominios locales o no enrutables")
+        self.usuario.refresh_from_db()
+        self.assertEqual(self.usuario.email, "maria@example.com")
+
+    def test_correo_publico_aceptado(self):
+        self.assertEqual(self._cambiar(correo="nueva@example.com").status_code, 302)
+        self.usuario.refresh_from_db()
+        self.assertEqual(self.usuario.email, "nueva@example.com")
+
+    def test_nombre_reservado_rechazado(self):
+        respuesta = self._cambiar(nombre="admin")
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertContains(respuesta, "reservado por el sistema")
+        self.usuario.refresh_from_db()
+        self.assertEqual(self.usuario.first_name, "María José")
+        self.assertEqual(self.usuario.username, "maria-jose")
+
+    def test_username_generado_nunca_es_reservado(self):
+        self.assertEqual(username_desde_nombre("Admin"), "observador-admin")
+        self.assertEqual(username_desde_nombre("Administrador"), "observador-administrador")
+
+    def test_registro_rechaza_nombre_reservado_y_correo_local(self):
+        self.client.logout()
+        respuesta = self.client.post(
+            "/registrarse/",
+            {
+                "nombre": "Admin",
+                "correo": "nuevo@localhost",
+                "contrasena1": "ClaveSegura123!",
+                "contrasena2": "ClaveSegura123!",
+            },
+        )
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertContains(respuesta, "reservado por el sistema")
+        self.assertContains(respuesta, "dominios locales o no enrutables")
+        self.assertFalse(get_user_model().objects.filter(email="nuevo@localhost").exists())
+
+    @override_settings(DEBUG=False)
+    def test_pagina_404_es_propia_y_sin_trazas(self):
+        respuesta = self.client.get("/esta-pagina-no-existe/")
+        self.assertEqual(respuesta.status_code, 404)
+        self.assertContains(respuesta, "Página no encontrada", status_code=404)
+        self.assertNotContains(respuesta, "Traceback", status_code=404)

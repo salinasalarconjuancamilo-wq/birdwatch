@@ -1,0 +1,19 @@
+{% load static %}<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ titulo }} · BirdWatch</title>
+    <link rel="icon" type="image/png" href="{% static 'img/logo.png' %}">
+    <link rel="stylesheet" href="{% static 'css/estilos.css' %}">
+</head>
+<body class="pagina-error">
+    <main class="error-contenido">
+        <img src="{% static 'img/logo.png' %}" alt="Logotipo de BirdWatch" width="72" height="72">
+        <p class="portada-etiqueta">Error 500</p>
+        <h1>{{ titulo }}</h1>
+        <p>{{ mensaje }}</p>
+        <p><a class="boton-ave" href="/">Volver al inicio</a></p>
+    </main>
+</body>
+</html>

@@ -34,12 +34,16 @@
             {% if user.is_staff or user.is_superuser or avistamiento.usuario_id == user.id %}
                 <a class="boton-secundario" href="{% url 'avistamiento_editar' avistamiento.pk %}">✏️ Editar registro</a>
             {% endif %}
-            <form method="post" action="{% url 'avistamiento_validar' avistamiento.pk %}">
-                {% csrf_token %}
-                <button class="boton-secundario" type="submit">
-                    {% if validado %}✓ Validado por ti (quitar){% else %}✓ Validar información{% endif %}
-                </button>
-            </form>
+            {% if avistamiento.usuario_id != user.id %}
+                <form method="post" action="{% url 'avistamiento_validar' avistamiento.pk %}">
+                    {% csrf_token %}
+                    <button class="boton-secundario" type="submit">
+                        {% if validado %}✓ Validado por ti (quitar){% else %}✓ Validar información{% endif %}
+                    </button>
+                </form>
+            {% else %}
+                <p class="ayuda">No puedes validar tu propio avistamiento.</p>
+            {% endif %}
             <p class="ayuda">{{ total_validaciones }} validación(es) de la comunidad</p>
         {% else %}
             <p><a href="{% url 'entrar' %}?siguiente={{ request.path }}">Inicia sesión</a> para comentar y validar.</p>
@@ -77,6 +81,7 @@
         <form method="post" action="{% url 'avistamiento_comentar' avistamiento.pk %}" class="formulario-comentario">
             {% csrf_token %}
             {{ formulario_comentario.texto }}
+            <p class="ayuda">Máximo 1000 caracteres.</p>
             {% if formulario_comentario.texto.errors %}<div class="errores">{{ formulario_comentario.texto.errors }}</div>{% endif %}
             <button class="boton-secundario" type="submit">Publicar comentario</button>
         </form>

@@ -29,10 +29,13 @@
 
 * { box-sizing: border-box; }
 
-html { scroll-behavior: smooth; }
+html { scroll-behavior: smooth; min-height: 100%; }
 
 body {
     margin: 0;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
     font-family: var(--fuente);
     color: var(--texto-oscuro);
     background:
@@ -144,7 +147,8 @@ a { color: var(--verde-medio); }
 
 /* ---------------- Contenido ---------------- */
 
-.contenido { min-height: 70vh; }
+/* Sticky footer: el contenido crece y empuja el pie hasta abajo (BUG-08). */
+.contenido { flex: 1 0 auto; min-height: 70vh; }
 
 .seccion {
     max-width: 1100px;
@@ -1003,6 +1007,7 @@ a { color: var(--verde-medio); }
 /* ---------------- Pie de página ---------------- */
 
 .pie {
+    margin-top: auto;
     background: var(--verde-noche);
     color: var(--texto-claro);
     padding: 34px clamp(16px, 4vw, 42px) 30px;
@@ -1118,7 +1123,7 @@ a { color: var(--verde-medio); }
     }
 }
 
-/* ---------------- Parques: selector y p�gina propia ---------------- */
+/* ---------------- Parques: selector y p�gina propia ---------------- */
 
 .cabecera-pagina {
     max-width: 1080px;
@@ -1278,3 +1283,48 @@ a { color: var(--verde-medio); }
     .parque-hero { grid-template-columns: 1fr; }
     .parque-hero-imagen { min-height: 200px; }
 }
+
+/* ---------------- Contención de texto y señales de UI (QA) ---------------- */
+
+/* Las tarjetas de cualquier grilla deben poder encogerse para no invadir
+   a sus vecinas cuando llegan cadenas largas sin espacios. */
+.parques-grid > *, .rejilla-dos > *, .tarjetas-noticias > * { min-width: 0; }
+.parque-tarjeta { min-width: 0; }
+.parque-tarjeta-texto { min-width: 0; overflow-wrap: anywhere; word-break: break-word; }
+.parque-tarjeta-texto h2,
+.parque-tarjeta-texto h3,
+.parque-tipo { overflow-wrap: anywhere; word-break: break-word; }
+
+.obligatorio { color: #a4161a; font-weight: 800; }
+
+/* Aviso flotante del mapa cuando fallan las teselas externas. */
+.mapa-aviso {
+    position: absolute;
+    top: 14px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 500;
+    max-width: min(90%, 420px);
+    padding: 8px 14px;
+    border-radius: 10px;
+    background: rgba(27, 67, 50, 0.94);
+    color: #fff;
+    font-size: 0.9rem;
+    text-align: center;
+    box-shadow: var(--sombra-suave);
+}
+
+/* Páginas de error 400/403/404/500: legibles y sin depender de la BD. */
+.pagina-error { display: flex; align-items: center; justify-content: center; padding: 24px; }
+.error-contenido {
+    max-width: 540px;
+    padding: 36px clamp(20px, 5vw, 44px);
+    text-align: center;
+    background: #fff;
+    border-radius: 22px;
+    box-shadow: var(--sombra);
+}
+.error-contenido img { margin: 0 auto 12px; }
+.error-contenido h1 { color: var(--verde-bosque); margin: 0.4em 0; }
+.error-contenido p { margin: 0.5rem 0; }
+.error-contenido .boton-ave { display: inline-block; margin-top: 1rem; }

@@ -15,19 +15,19 @@
         <form method="post" action="{% url 'mi_cuenta' %}" class="formulario-login">
             {% csrf_token %}
             <div class="campo">
-                <label class="campo-etiqueta" for="id-nombre">Nombre</label>
+                <label class="campo-etiqueta" for="id-nombre">Nombre <span class="obligatorio">*</span></label>
                 <input type="text" name="nombre" id="id-nombre" autocomplete="given-name" placeholder="Ej.: María José" value="{{ form.nombre.value|default:'' }}" required minlength="2" maxlength="50" pattern="[A-Za-záéíóúüñÁÉÍÓÚÜÑ ]+" title="Solo letras y espacios; entre 2 y 50 caracteres.">
                 <p class="campo-ayuda">El nombre se usa para generar tu usuario interno (sin acentos).</p>
                 {% for error in form.nombre.errors %}<p class="campo-error">{{ error }}</p>{% endfor %}
             </div>
             <div class="campo">
-                <label class="campo-etiqueta" for="id-correo">Correo electrónico</label>
+                <label class="campo-etiqueta" for="id-correo">Correo electrónico <span class="obligatorio">*</span></label>
                 <input type="email" name="correo" id="id-correo" autocomplete="email" placeholder="tu@correo.com" value="{{ form.correo.value|default:'' }}" required>
                 <p class="campo-ayuda">Con este correo inicias sesión y recibes la recuperación de clave.</p>
                 {% for error in form.correo.errors %}<p class="campo-error">{{ error }}</p>{% endfor %}
             </div>
             <div class="campo">
-                <label class="campo-etiqueta" for="id-contrasena_actual">Contraseña actual</label>
+                <label class="campo-etiqueta" for="id-contrasena_actual">Contraseña actual <span class="obligatorio">*</span></label>
                 <input type="password" name="contrasena_actual" id="id-contrasena_actual" autocomplete="current-password" required>
                 <p class="campo-ayuda">Necesaria para confirmar que eres tú.</p>
                 {% for error in form.contrasena_actual.errors %}<p class="campo-error">{{ error }}</p>{% endfor %}

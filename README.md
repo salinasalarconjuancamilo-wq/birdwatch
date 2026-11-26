@@ -354,7 +354,37 @@ también es accesible desde el botón **Editar carrusel** en la propia página d
 | `DATABASE_URL` | Cadena PostgreSQL, p. ej. `postgres://usuario:clave@servidor:5432/birdwatch`. |
 | `BIRDNET_URL` | URL del analizador (por defecto `http://localhost:8080`). |
 | `DJANGO_CSRF_ORIGINS` | Orígenes adicionales para HTTPS. |
-| `DJANGO_SECRET_KEY`, `DJANGO_DEBUG=0` | Para un despliegue real. |
+| `DJANGO_SECRET_KEY` | Secreto obligatorio en producción (nunca el valor por defecto). |
+| `DJANGO_DEBUG=1` | **Solo desarrollo local**. Por defecto es `0` (seguro). |
+| `DJANGO_ALLOWED_HOSTS` | Hosts públicos permitidos, separados por comas. Por defecto solo localhost. |
+
+### Seguridad y validaciones aplicadas (informe QA v4.0)
+
+- `DEBUG` nace desactivado, `ALLOWED_HOSTS` es explícito y hay páginas propias
+  para los errores 400, 403, 404 y 500 (`plantillas/400.html`, etc.). El script
+  `INICIAR-BIRDWATCH.bat` activa `DJANGO_DEBUG=1` únicamente para el arranque local.
+- Los comentarios están limitados a 1000 caracteres (`maxlength` + `CharField`).
+  Las cargas que superen `DATA_UPLOAD_MAX_MEMORY_SIZE` se capturan en la vista y
+  en `birdwatch/middleware.py`, con un mensaje amigable en vez de una traza.
+- El formulario de avistamiento exige campos obligatorios marcados con `*`,
+  rechaza etiquetas HTML y cadenas de solo símbolos, limita longitudes, impide
+  fechas futuras y valida la geocerca regional (latitud 4.0–5.2, longitud -75.0–-73.5).
+- Un usuario no puede validar sus propios avistamientos (botón oculto y bloqueo en
+  el backend).
+- "Mi cuenta" rechaza dominios de correo no enrutables (`@localhost`, `.local`,
+  IPs) y nombres reservados (`admin`, `administrador`, `soporte`, `birdwatch`, …).
+- Las tarjetas y los comentarios contienen texto largo sin desbordarse; el pie usa
+  *sticky footer* y el mapa restringe el encuadre (`minZoom`, `maxBounds`,
+  `noWrap`) y cambia a OpenStreetMap si fallan las teselas de Esri.
+
+Para verificar los cambios con SQLite:
+
+```
+set DB_ENGINE=sqlite
+set DJANGO_DEBUG=0
+python manage.py test
+```
+
 
 Las redes sociales y la frase inspiradora se editan en un solo lugar:
 `birdwatch/settings.py` (`REDES_SOCIALES`, `FRASE_INSPIRADORA`, `ALIADO`).

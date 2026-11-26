@@ -64,7 +64,7 @@
             </p>
             {% if avistamiento.caso_especial %}<p class="etiqueta especial">★ Caso especial</p>{% endif %}
             {% if not avistamiento.aprobado %}<p class="etiqueta pendiente">Pendiente de aprobación</p>{% endif %}
-            {% if avistamiento.notas %}<p>{{ avistamiento.notas|truncatechars:180 }}</p>{% endif %}
+            {% if avistamiento.notas %}<p class="avistamiento-notas">{{ avistamiento.notas|truncatechars:180 }}</p>{% endif %}
             <p class="avistamiento-pie">
                 Por {{ avistamiento.usuario|default:"la comunidad" }} ·
                 💬 {{ avistamiento.comentarios.count }} ·

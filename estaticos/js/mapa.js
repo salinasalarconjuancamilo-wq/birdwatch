@@ -2,6 +2,9 @@
    BirdWatch · Mapa de lugares con Leaflet + Esri World Street Map.
    Los datos se inyectan desde Django con json_script (#datos-marcadores).
    Este mapa NO muestra avistamientos de aves, solo lugares de interés.
+
+   QA: encuadre regional (minZoom/maxBounds/noWrap) y respaldo ante fallos
+   del proveedor de teselas (BUG-07 y BUG-09).
    ============================================================ */
 (function () {
     "use strict";
@@ -40,27 +43,103 @@
         centro = [dibujables[0].latitud, dibujables[0].longitud];
     }
 
-    var mapa = L.map(contenedor, { scrollWheelZoom: false }).setView(centro, 12);
-
-    var capaTeselas = L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}", {
-        attribution: 'Tiles &copy; Esri &mdash; Source: Esri, DeLorme, NAVTEQ, USGS, Intermap, iPC, NRCAN, Esri Japan, METI, Esri China (Hong Kong), Esri (Thailand), TomTom, 2012',
+    // Límites regionales (Cundinamarca / Tequendama): evita el mapamundi
+    // repetido y las franjas grises al alejar el zoom.
+    var ZOOM_MINIMO = 10;
+    var LIMITES = [[4.1, -74.8], [5.1, -73.7]];
+    var mapa = L.map(contenedor, {
+        scrollWheelZoom: false,
+        minZoom: ZOOM_MINIMO,
         maxZoom: 19,
-        errorTileUrl: "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
-    }).addTo(mapa);
+        maxBounds: LIMITES,
+        maxBoundsViscosity: 1.0
+    }).setView(centro, 12);
 
-    // El proxy de algunas redes falla al abrir el túnel y deja teselas en blanco.
-    // Reintentamos unas veces con espera antes de darlas por perdidas.
-    var reintentos = 0;
-    var temporizador = null;
-    var teselasConError = false;
-    mapa.on("tileerror", function () {
-        teselasConError = true;
-        if (reintentos >= 3 || temporizador) { return; }
-        reintentos += 1;
-        temporizador = setTimeout(function () {
-            temporizador = null;
-            capaTeselas.redraw();
-        }, 1200 * reintentos);
+    var teselaVacia = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
+    var urlEsri = "https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}";
+    var urlOsm = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
+
+    function crearCapa(respaldo) {
+        var opciones = {
+            minZoom: ZOOM_MINIMO,
+            maxZoom: 19,
+            noWrap: true,
+            errorTileUrl: teselaVacia
+        };
+        if (respaldo) {
+            opciones.attribution = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
+            return L.tileLayer(urlOsm, opciones);
+        }
+        opciones.attribution = 'Tiles &copy; Esri &mdash; Source: Esri, DeLorme, NAVTEQ, USGS, Intermap, iPC, NRCAN, Esri Japan, METI, Esri China (Hong Kong), Esri (Thailand), TomTom, 2012';
+        return L.tileLayer(urlEsri, opciones);
+    }
+
+    var capaTeselas = crearCapa(false).addTo(mapa);
+    var erroresPrincipales = 0;
+    var usandoRespaldo = false;
+    var aviso = null;
+
+    function mostrarAviso(texto) {
+        if (!aviso) {
+            aviso = document.createElement("div");
+            aviso.className = "mapa-aviso";
+            aviso.setAttribute("role", "status");
+            contenedor.parentNode.appendChild(aviso);
+        }
+        aviso.textContent = texto;
+    }
+
+    function ocultarAviso() {
+        if (aviso && aviso.parentNode) {
+            aviso.parentNode.removeChild(aviso);
+        }
+        aviso = null;
+    }
+
+    function textoEstado() {
+        var sinCoordenadas = lugares.length - dibujables.length;
+        var mensaje = dibujables.length
+            ? "Mostrando " + dibujables.length + " lugar(es) en el mapa."
+            : "Aún no hay lugares con coordenadas.";
+        if (sinCoordenadas) {
+            mensaje += " " + sinCoordenadas + " lugar(es) tienen la ubicación por definir.";
+        }
+        return mensaje;
+    }
+
+    function actualizarEstado(extra) {
+        if (estado) {
+            estado.textContent = textoEstado() + (extra || "");
+        }
+    }
+
+    function activarRespaldo() {
+        if (usandoRespaldo) { return; }
+        usandoRespaldo = true;
+        mapa.removeLayer(capaTeselas);
+        capaTeselas = crearCapa(true).addTo(mapa);
+        capaTeselas.on("tileerror", function () {
+            mostrarAviso("El mapa base no está disponible en este momento. Revisa tu conexión.");
+            actualizarEstado(" No se pudieron cargar las teselas del mapa.");
+        });
+        capaTeselas.on("tileload", function () {
+            ocultarAviso();
+            actualizarEstado(" Se usa la capa de respaldo de OpenStreetMap.");
+        });
+        mostrarAviso("El proveedor principal no responde. Se cambió a OpenStreetMap.");
+        actualizarEstado(" Se usa la capa de respaldo de OpenStreetMap.");
+    }
+
+    // Tras varios errores seguidos se cambia de proveedor en vez de
+    // dejar un recuadro gris sin explicación.
+    capaTeselas.on("tileerror", function () {
+        erroresPrincipales += 1;
+        if (erroresPrincipales >= 3) {
+            activarRespaldo();
+        }
+    });
+    capaTeselas.on("tileload", function () {
+        if (!usandoRespaldo) { erroresPrincipales = 0; }
     });
 
     var capa = L.layerGroup().addTo(mapa);
@@ -89,22 +168,8 @@
     }
 
     mapa.on("load", function () {
-        reintentos = 0;
-        teselasConError = false;
         setTimeout(function () { mapa.invalidateSize(); }, 150);
     });
 
-    if (estado) {
-        var sinCoordenadas = lugares.length - dibujables.length;
-        var mensaje = dibujables.length
-            ? "Mostrando " + dibujables.length + " lugar(es) en el mapa."
-            : "Aún no hay lugares con coordenadas.";
-        if (sinCoordenadas) {
-            mensaje += " " + sinCoordenadas + " lugar(es) tienen la ubicación por definir.";
-        }
-        if (teselasConError && reintentos >= 3) {
-            mensaje += " Algunas teselas no cargaron; recarga la página.";
-        }
-        estado.textContent = mensaje;
-    }
+    actualizarEstado();
 })();

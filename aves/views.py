@@ -1,5 +1,6 @@
 """Vistas del catálogo, los avistamientos, el mapa y las estadísticas."""
 from django.contrib import messages
+from django.core.exceptions import RequestDataTooBig
 from django.db.models import Q
 from django.http import Http404, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -174,7 +175,14 @@ def comentar(request, pk):
     if not _puede_ver(request, avistamiento):
         messages.error(request, "No puedes comentar ese avistamiento.")
         return redirect("avistamientos")
-    formulario = ComentarioForm(request.POST)
+    try:
+        formulario = ComentarioForm(request.POST)
+    except RequestDataTooBig:
+        messages.error(
+            request,
+            "El comentario es demasiado grande. Usa como máximo 1000 caracteres.",
+        )
+        return redirect("avistamiento_detalle", pk=pk)
     if formulario.is_valid():
         comentario = formulario.save(commit=False)
         comentario.avistamiento = avistamiento
@@ -182,7 +190,10 @@ def comentar(request, pk):
         comentario.save()
         messages.success(request, "Comentario publicado.")
     else:
-        messages.error(request, "El comentario no puede estar vacío.")
+        errores = " ".join(
+            mensaje for lista in formulario.errors.values() for mensaje in lista
+        )
+        messages.error(request, errores or "Revisa el comentario e inténtalo de nuevo.")
     return redirect("avistamiento_detalle", pk=pk)
 
 
@@ -194,6 +205,9 @@ def validar(request, pk):
     if not _puede_ver(request, avistamiento):
         messages.error(request, "No puedes validar ese avistamiento.")
         return redirect("avistamientos")
+    if avistamiento.usuario_id == request.user.id:
+        messages.error(request, "No puedes validar tus propios avistamientos.")
+        return redirect("avistamiento_detalle", pk=pk)
     validacion = Validacion.objects.filter(avistamiento=avistamiento, usuario=request.user).first()
     if validacion:
         validacion.delete()

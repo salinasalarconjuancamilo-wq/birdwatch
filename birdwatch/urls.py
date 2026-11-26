@@ -6,6 +6,12 @@ from django.urls import include, path
 
 from aves import views as aves_views
 
+# Errores HTTP con plantillas propias (sin trazas ni rutas internas).
+handler400 = "birdwatch.errores.error400"
+handler403 = "birdwatch.errores.error403"
+handler404 = "birdwatch.errores.error404"
+handler500 = "birdwatch.errores.error500"
+
 urlpatterns = [
     path("admin/", admin.site.urls),
     # Portada alterna de la app aves (se conserva por compatibilidad).

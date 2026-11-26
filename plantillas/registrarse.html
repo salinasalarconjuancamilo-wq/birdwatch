@@ -15,23 +15,23 @@
         <form method="post" action="{% url 'registrarse' %}" class="formulario-login">
             {% csrf_token %}
             <div class="campo">
-                <label class="campo-etiqueta" for="id-nombre">Nombre</label>
+                <label class="campo-etiqueta" for="id-nombre">Nombre <span class="obligatorio">*</span></label>
                 <input type="text" name="nombre" id="id-nombre" autocomplete="given-name" placeholder="Ej.: María José" value="{{ form.nombre.value|default:'' }}" required minlength="2" maxlength="50" pattern="[A-Za-záéíóúüñÁÉÍÓÚÜÑ ]+" title="Solo letras y espacios; entre 2 y 50 caracteres.">
                 <p class="campo-ayuda">Entre 2 y 50 caracteres. Solo letras y espacios; sin números ni caracteres especiales.</p>
                 {% for error in form.nombre.errors %}<p class="campo-error">{{ error }}</p>{% endfor %}
             </div>
             <div class="campo">
-                <label class="campo-etiqueta" for="id-correo">Correo electrónico</label>
+                <label class="campo-etiqueta" for="id-correo">Correo electrónico <span class="obligatorio">*</span></label>
                 <input type="email" name="correo" id="id-correo" autocomplete="email" placeholder="tu@correo.com" value="{{ form.correo.value|default:'' }}" required>
                 {% for error in form.correo.errors %}<p class="campo-error">{{ error }}</p>{% endfor %}
             </div>
             <div class="campo">
-                <label class="campo-etiqueta" for="id-contrasena1">Contraseña</label>
+                <label class="campo-etiqueta" for="id-contrasena1">Contraseña <span class="obligatorio">*</span></label>
                 <input type="password" name="contrasena1" id="id-contrasena1" autocomplete="new-password" required>
                 {% for error in form.contrasena1.errors %}<p class="campo-error">{{ error }}</p>{% endfor %}
             </div>
             <div class="campo">
-                <label class="campo-etiqueta" for="id-contrasena2">Confirmar contraseña</label>
+                <label class="campo-etiqueta" for="id-contrasena2">Confirmar contraseña <span class="obligatorio">*</span></label>
                 <input type="password" name="contrasena2" id="id-contrasena2" autocomplete="new-password" required>
                 {% for error in form.contrasena2.errors %}<p class="campo-error">{{ error }}</p>{% endfor %}
             </div>

@@ -1,4 +1,5 @@
 """Formularios del carrusel y del acceso a BirdWatch."""
+import ipaddress
 from pathlib import Path
 
 from django import forms
@@ -10,7 +11,7 @@ from django.core.validators import validate_email
 from django.utils.text import slugify
 
 from .models import Ave
-from .usuarios import username_desde_nombre
+from .usuarios import es_nombre_reservado, username_desde_nombre
 
 # Formatos y tamaño máximo aceptados para las fotos del carrusel.
 TAMANO_MAXIMO_FOTO = 10 * 1024 * 1024  # 10 MB
@@ -18,13 +19,51 @@ ANCHO_MAXIMO_FOTO = 1280  # píxeles; suficiente para la tarjeta y liviano
 
 
 def validar_nombre(valor):
-    """Nombre de 2 a 50 letras (con acentos, ñ y espacios)."""
+    """Nombre de 2 a 50 letras (con acentos, ñ y espacios), no reservado."""
     nombre = valor.strip()
     if not nombre.replace(" ", "").isalpha():
         raise ValidationError(
             "El nombre solo puede contener letras y espacios; no se permiten números ni caracteres especiales."
         )
+    if not 2 <= len(nombre) <= 50:
+        raise ValidationError("El nombre debe tener entre 2 y 50 caracteres.")
+    if es_nombre_reservado(nombre):
+        raise ValidationError("Este nombre está reservado por el sistema. Elige otro.")
     return nombre
+
+
+def validar_correo_publico(correo):
+    """Exige un dominio enrutable con TLD público (BUG-11)."""
+    correo = correo.strip().lower()
+    try:
+        validate_email(correo)
+    except ValidationError:
+        raise ValidationError("Escribe un correo electrónico válido.") from None
+
+    dominio = correo.rsplit("@", 1)[1].rstrip(".")
+    partes = dominio.split(".")
+    if dominio == "localhost" or dominio.endswith(".localhost"):
+        raise ValidationError(
+            "No se permiten dominios locales o no enrutables como @localhost o .local."
+        )
+    if len(partes) < 2:
+        raise ValidationError(
+            "Usa un correo con dominio público, por ejemplo tu@correo.com."
+        )
+    if dominio.endswith((".local", ".localhost", ".internal", ".test", ".invalid")):
+        raise ValidationError(
+            "No se permiten dominios locales o no enrutables como @localhost o .local."
+        )
+    if not partes[-1].isalpha() or len(partes[-1]) < 2:
+        raise ValidationError("El dominio del correo debe terminar en una extensión pública.")
+    if all(parte.isdigit() for parte in partes):
+        try:
+            ipaddress.ip_address(dominio)
+        except ValueError:
+            pass
+        else:
+            raise ValidationError("No se permite una dirección IP como dominio de correo.")
+    return correo
 
 
 def _carpeta_fotos():
@@ -192,7 +231,7 @@ class RegistroForm(forms.Form):
         return validar_nombre(self.cleaned_data["nombre"])
 
     def clean_correo(self):
-        correo = self.cleaned_data["correo"].strip().lower()
+        correo = validar_correo_publico(self.cleaned_data["correo"])
         usuarios = get_user_model().objects
         if usuarios.filter(email__iexact=correo).exists() or usuarios.filter(username__iexact=correo).exists():
             raise ValidationError("Ya existe una cuenta con ese correo electrónico. Inicia sesión.")
@@ -268,6 +307,10 @@ class CuentaForm(forms.Form):
         correo = self.cleaned_data["correo"].strip().lower()
         if len(correo) > 150:
             raise ValidationError("El correo electrónico es demasiado largo.")
+        # Si la cuenta ya tenía un correo heredado no enrutable, se permite
+        # conservarlo sin cambios; cualquier valor nuevo debe ser público.
+        if not (self.usuario and correo == self.usuario.email.strip().lower()):
+            correo = validar_correo_publico(correo)
         consulta = get_user_model().objects.filter(email__iexact=correo)
         if self.usuario is not None:
             consulta = consulta.exclude(pk=self.usuario.pk)
